@@ -66,7 +66,7 @@ function pasteDlg(){const dlg=$("#dlg");dlg.innerHTML=`<div class="dh">Add cases
   const n1=x=>x.split("\t")[0].toLowerCase().replace(/^\s*(\d+[.)]|[-•*])\s*/,"").replace(/[^a-z0-9& ]/g," ").replace(/\s+/g," ").trim(),ids=[],miss=[];
   $("#pl").value.split("\n").map(n1).filter(Boolean).forEach(l=>{const c=S.co.find(c=>n1(c.n)===l)||(l.length>=4?S.co.find(c=>{const n=n1(c.n);return n.includes(l)||l.includes(n)}):null);c?ids.push(c.id):miss.push(l)});
   dlg.close();setB(ids,true);toast(ids.length+" added"+(miss.length?", not found: "+miss.slice(0,3).join(", ")+(miss.length>3?"…":""):""))}}
-function render(animate=false){const view=ttl()+(V==="dl"?"":al())+(V==="cmt"?cmt():V==="ins"?ins():V==="dl"?dl():mis()),host=$("#app");host.innerHTML=animate?String.fromCharCode(60)+"div class="+String.fromCharCode(34)+"view-enter"+String.fromCharCode(34)+String.fromCharCode(62)+view+String.fromCharCode(60)+"/div"+String.fromCharCode(62):view;if(!S.co.length)host.insertAdjacentHTML("afterbegin",'<div class="panel"><h2>Welcome</h2><p class="mut" style="margin:6px 0 12px">No cases loaded yet. Link your Portfolio Excel file once and everything loads from it. Your data stays in this browser and in your Excel file; it is never uploaded anywhere.</p><button class="btn p" onclick="ghDlg()">Sync with GitHub (all devices)</button> <button class="btn" onclick="document.querySelector(\'#xs\').click()">Use a local Excel file</button></div>');$("#bc").textContent=S.bk.length;$("#nc").textContent=S.co.filter(c=>c.ncd&&!c.tr).length;$("#add").textContent=V==="ncd"?"+ Add NCD company":"+ Add company";document.querySelectorAll("nav button").forEach(b=>{const active=b.dataset.v===V;b.classList.toggle("on",active);b.setAttribute("aria-current",active?"page":"false")});bar();dbadge()}
+function render(animate=false){const view=ttl()+(V==="dl"?"":al())+(V==="cmt"?cmt():V==="ins"?ins():V==="dl"?dl():mis()),host=$("#app");host.innerHTML=animate?String.fromCharCode(60)+"div class="+String.fromCharCode(34)+"view-enter"+String.fromCharCode(34)+String.fromCharCode(62)+view+String.fromCharCode(60)+"/div"+String.fromCharCode(62):view;if(!S.co.length)host.insertAdjacentHTML("afterbegin",'<div class="panel"><h2>Welcome</h2><p class="mut" style="margin:6px 0 12px">No cases loaded yet. Connect your database to load your cases on this device, or import your Portfolio Excel once (menu → Import Excel).</p><button class="btn p" onclick="dbDlg()">Connect database (all devices)</button> <button class="btn" onclick="document.querySelector(\'#xs\').click()">Use a local Excel file</button></div>');$("#bc").textContent=S.bk.length;$("#nc").textContent=S.co.filter(c=>c.ncd&&!c.tr).length;$("#add").textContent=V==="ncd"?"+ Add NCD company":"+ Add company";document.querySelectorAll("nav button").forEach(b=>{const active=b.dataset.v===V;b.classList.toggle("on",active);b.setAttribute("aria-current",active?"page":"false")});bar();dbadge()}
 /* ---------- downloads ---------- */
 async function out(name,data){try{const d=window.claude&&await claude.use("downloads");if(d){await d.save({filename:name,data});return}}catch(e){if(e&&e.code==="declined")return}
  const a=document.createElement("a"),u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
@@ -127,7 +127,7 @@ function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",a:"",an:"",gh:"",lp:"",cd:"
   if(!n&&nm!==c.n)o.xn=(c.xn&&key(c.xn)===key(nm))?undefined:(c.xn||c.n);
   if(o.withdrawType==="NOC"){o.w=true;o.withdrawStatus="Withdrawn after rating issued";}
   if(o.withdrawType==="NDC"){o.w=true;o.a=0;o.withdrawStatus="Withdrawn with amount reduced to ₹0.00 Cr";}
-  if(n)S.co.unshift({id:Math.max(0,...S.co.map(x=>x.id))+1,dn:false,...o});else Object.assign(c,o);fin();toast(o.withdrawType==="NOC"?"Case marked withdrawn (NOC-based) with rating retained":o.withdrawType==="NDC"?"Case marked withdrawn; amount set to ₹0.00 Cr":(n?"Company added":"Saved"))}}
+  if(n)S.co.unshift({id:Date.now()*1000+Math.floor(Math.random()*1000),dn:false,...o});else Object.assign(c,o);fin();toast(o.withdrawType==="NOC"?"Case marked withdrawn (NOC-based) with rating retained":o.withdrawType==="NDC"?"Case marked withdrawn; amount set to ₹0.00 Cr":(n?"Company added":"Saved"))}}
 function fin(){$("#dlg").close();save();render()}
 function rules(){const dlg=$("#dlg"),t=k=>Object.entries(S.map[k]).map(([a,b])=>`${a} > ${b}`).join("\n");
  dlg.innerHTML=`<div class="dh">Rating rules (previous → current)</div><div class="db"><label>Long term (one per line: PREVIOUS &gt; CURRENT, blank = decide manually)<textarea id="rl" rows="12">${esc(t("lt"))}</textarea></label><label>Short term<textarea id="rs" rows="12">${esc(t("st"))}</textarea></label><p class="f mut">This replaces the lookup table on Sheet2 of check.xlsm. Cases still use the “decide” dropdowns to override it.</p></div><div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Save</button></div>`;
@@ -409,9 +409,9 @@ const xnow=()=>new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-d
 async function xLink(){if(!window.showOpenFilePicker||window.top!==window)return linkHelp();
  try{const[h]=await showOpenFilePicker({types:[{description:"Excel",accept:{"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":[".xlsx",".xlsm"]}}]});if(await h.requestPermission({mode:"readwrite"})!=="granted")return toast("Permission to edit the file wasn't given");
   XH=h;await idb("put","h",h);await xPull(true);await xPush(true);toast("Linked to "+h.name+": changes now save to it automatically")}catch(e){if(e.name==="AbortError")return;if(e.name==="SecurityError"||/cross.origin|sub ?frame/i.test(e.message))return linkHelp();toast("Couldn't link the file: "+e.message)}}
-async function xPull(first){if(!XH)return;if(XH.gh)return ghPull(first);try{if(S.xd&&!(await xPush()))return;const f=await XH.getFile();if(!first&&f.lastModified===XT)return;{const L=readXlsx(await f.arrayBuffer());mergeIn(L,"merge");fixCd();S.issues=L.issues||[]}XT=f.lastModified;save();render();xst("Excel ✓ "+xnow(),"o")}catch(e){xst("⚠ Excel unreadable","w")}}
+async function xPull(first){if(!XH)return;if(XH.db)return dbPull(first);try{if(S.xd&&!(await xPush()))return;const f=await XH.getFile();if(!first&&f.lastModified===XT)return;{const L=readXlsx(await f.arrayBuffer());mergeIn(L,"merge");fixCd();S.issues=L.issues||[]}XT=f.lastModified;save();render();xst("Excel ✓ "+xnow(),"o")}catch(e){xst("⚠ Excel unreadable","w")}}
 function xPushSoon(){if(!XH){if(XP)S.xd=true;return}XQueued=true;clearTimeout(xt);xt=setTimeout(()=>xPush(),650)}
-async function xPush(){if(!XH)return;if(XH.gh)return xPushGh();if(XB){XQueued=true;return}clearTimeout(xt);xt=null;XB=true;XQueued=false;let ok=false;try{const f=await XH.getFile(),o=(patchXlsx.ren=[],patchXlsx(await f.arrayBuffer(),S.co));if(o){const w=await XH.createWritable();await w.write(o);await w.close();XT=(await XH.getFile()).lastModified}if((patchXlsx.ren||[]).length){patchXlsx.ren.forEach(c=>delete c.xn);patchXlsx.ren=[];save()}S.xd=false;ok=true;xst("Excel synced "+xnow(),"o")}catch(e){S.xd=true;xst("⚠ Excel not updated (is it open in Excel?)","w")}finally{XB=false;try{localStorage.setItem("mis_v1",JSON.stringify(S))}catch(e){}if(XQueued&&ok){clearTimeout(xt);xt=setTimeout(()=>xPush(),150)}}return ok}
+async function xPush(){if(!XH)return;if(XH.db)return xPushDb();if(XB){XQueued=true;return}clearTimeout(xt);xt=null;XB=true;XQueued=false;let ok=false;try{const f=await XH.getFile(),o=(patchXlsx.ren=[],patchXlsx(await f.arrayBuffer(),S.co));if(o){const w=await XH.createWritable();await w.write(o);await w.close();XT=(await XH.getFile()).lastModified}if((patchXlsx.ren||[]).length){patchXlsx.ren.forEach(c=>delete c.xn);patchXlsx.ren=[];save()}S.xd=false;ok=true;xst("Excel synced "+xnow(),"o")}catch(e){S.xd=true;xst("⚠ Excel not updated (is it open in Excel?)","w")}finally{XB=false;try{localStorage.setItem("mis_v1",JSON.stringify(S))}catch(e){}if(XQueued&&ok){clearTimeout(xt);xt=setTimeout(()=>xPush(),150)}}return ok}
 function patchXlsx(buf,cos){const z=new PizZip(buf),P=t=>new DOMParser().parseFromString(t,"application/xml"),M="http://schemas.openxmlformats.org/spreadsheetml/2006/main",X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
  const rel={};[...P(z.file("xl/_rels/workbook.xml.rels").asText()).getElementsByTagName("Relationship")].forEach(r=>rel[r.getAttribute("Id")]=r.getAttribute("Target"));
  const sh=[...P(z.file("xl/workbook.xml").asText()).getElementsByTagName("sheet")].find(q=>q.getAttribute("name")==="ALL");if(!sh)throw new Error("no ALL sheet");const path="xl/"+rel[sh.getAttribute("r:id")].replace(/^\/?(xl\/)?/,"");
@@ -446,49 +446,63 @@ function patchXlsx(buf,cos){const z=new PizZip(buf),P=t=>new DOMParser().parseFr
  let w=z.file("xl/workbook.xml").asText();w=/<calcPr/.test(w)?w.replace(/<calcPr([^>]*?)\/>/,(m,a)=>"<calcPr"+a.replace(/ fullCalcOnLoad="[^"]*"/,"")+' fullCalcOnLoad="1"/>'):w;z.file("xl/workbook.xml",w);
  return z.generate({type:"uint8array",compression:"DEFLATE"})}
 
-/* ---------- GitHub sync: data lives in a PRIVATE repo, so every device sees the same data ---------- */
-const GH={meta:(()=>{try{return JSON.parse(localStorage.getItem("mis_gh_meta")||"{}")}catch(e){return{}}})(),last:""};
-const ghc=()=>{try{return JSON.parse(localStorage.getItem("mis_gh")||"null")}catch(e){return null}},ghMeta=()=>{try{localStorage.setItem("mis_gh_meta",JSON.stringify(GH.meta))}catch(e){}};
-const ghX=()=>(ghc().file||"Portfolio.xlsx"),ghS=()=>(ghc().state||"mis-state.json");
-async function ghReq(path,o){const c=ghc(),put=o&&o.method==="PUT";return fetch("https://api.github.com/repos/"+c.repo+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+(put?"":"?ref="+encodeURIComponent(c.branch||"main")),{cache:"no-store",...o,headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+c.token,"X-GitHub-Api-Version":"2022-11-28",...((o&&o.headers)||{})}})}
-async function ghGet(path){const r=await ghReq(path);if(r.status===404)return null;if(!r.ok){const e=new Error("GitHub "+r.status+(r.status===401?" – token wrong or expired":r.status===403?" – no access or rate limit":""));e.status=r.status;throw e}
- const j=await r.json();let buf;if(j.content){const b=atob(j.content.replace(/\n/g,""));buf=Uint8Array.from(b,ch=>ch.charCodeAt(0))}else{const r2=await ghReq(path,{headers:{Accept:"application/vnd.github.raw+json"}});if(!r2.ok)throw new Error("GitHub "+r2.status);buf=new Uint8Array(await r2.arrayBuffer())}return{sha:j.sha,buf}}
-async function ghPut(path,bytes,sha){const c=ghc();let t="";for(let i=0;i<bytes.length;i+=8192)t+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
- const body={message:"MIS sync "+new Date().toISOString().slice(0,16).replace("T"," "),content:btoa(t),branch:c.branch||"main"};if(sha)body.sha=sha;
- const r=await ghReq(path,{method:"PUT",body:JSON.stringify(body),headers:{"Content-Type":"application/json"}});if(!r.ok){const e=new Error("GitHub "+r.status+(r.status===401||r.status===403?" – token cannot write (needs Contents: Read and write)":""));e.status=r.status;throw e}return(await r.json()).content.sha}
-const ghState=()=>{const o={...S};delete o.xd;return o};
-async function ghPush(){const x=await ghGet(ghX());
- if(x){const o=patchXlsx(x.buf,S.co);GH.meta.xlsx=o?await ghPut(ghX(),o,x.sha):x.sha}
- const txt=JSON.stringify(ghState());if(txt!==GH.last||!GH.meta.state){const b=new TextEncoder().encode(txt);let st=await ghGet(ghS());
-  try{GH.meta.state=await ghPut(ghS(),b,st&&st.sha)}catch(e){if(e.status===409||e.status===422){st=await ghGet(ghS());GH.meta.state=await ghPut(ghS(),b,st&&st.sha)}else throw e}GH.last=txt}
- ghMeta()}
-async function xPushGh(){if(XB){XQueued=true;return false}clearTimeout(xt);xt=null;XB=true;XQueued=false;let ok=false;
- try{await ghPush();S.xd=false;ok=true;xst("GitHub synced "+xnow(),"o")}catch(e){S.xd=true;xst("⚠ Not synced: "+(e.message||"offline")+" – will retry","w")}
+/* ---------- Database sync (Supabase): one shared, login-protected copy for every device ---------- */
+const DB={ver:0,base:null,lock:null,cfg:()=>{try{return JSON.parse(localStorage.getItem("mis_db")||"null")}catch(e){return null}}};
+const dbSaveCfg=c=>{try{localStorage.setItem("mis_db",JSON.stringify(c))}catch(e){}},dbSaveMeta=()=>{try{localStorage.setItem("mis_db_meta",JSON.stringify({ver:DB.ver,base:DB.base}))}catch(e){}},dbLoadMeta=()=>{try{const m=JSON.parse(localStorage.getItem("mis_db_meta")||"null");if(m){DB.ver=m.ver||0;DB.base=m.base||null}}catch(e){}};
+const dbState=()=>{const o=JSON.parse(JSON.stringify(S));delete o.xd;delete o.issues;return o};
+async function dbAuth(c,grant,body){const r=await fetch(c.url+"/auth/v1/token?grant_type="+grant,{method:"POST",headers:{apikey:c.key,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(grant==="password"?"Wrong email or password":"Signed out – please sign in again (Database sync)");
+ c.at=j.access_token;c.rt=j.refresh_token;c.exp=Date.now()+(j.expires_in||3600)*1000-60000;dbSaveCfg(c);return c}
+async function dbTok(){let c=DB.cfg();if(!c)throw new Error("Not connected");if(!c.at||Date.now()>c.exp){if(!DB.lock)DB.lock=dbAuth(c,"refresh_token",{refresh_token:c.rt}).finally(()=>{DB.lock=null});c=await DB.lock}return c}
+async function dbReq(path,o){const c=await dbTok();const r=await fetch(c.url+"/rest/v1/"+path,{cache:"no-store",...o,headers:{apikey:c.key,Authorization:"Bearer "+c.at,"Content-Type":"application/json",...((o&&o.headers)||{})}});
+ if(!r.ok&&r.status!==409){let m="";try{m=(await r.json()).message||""}catch(e){}throw new Error("Database "+r.status+(m?" – "+m:""))}return r}
+const dbRow=async sel=>(await(await dbReq("mis_state?id=eq.main&select="+sel)).json())[0]||null;
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+/* 3-way merge: keeps edits from both devices; only the same field of the same case edited on both sides is a real conflict (this device wins) */
+function merge3(base,loc,rem){base=base||{co:[]};const out={...rem};
+ new Set([...Object.keys(loc),...Object.keys(rem),...Object.keys(base)]).forEach(k=>{if(k==="co"||k==="xd")return;if(!same(loc[k],base[k])){if(loc[k]===undefined)delete out[k];else out[k]=loc[k]}});
+ const bm=new Map((base.co||[]).map(c=>[c.id,c])),lm=new Map((loc.co||[]).map(c=>[c.id,c])),rm=new Map((rem.co||[]).map(c=>[c.id,c])),co=[];
+ new Set([...lm.keys(),...rm.keys()]).forEach(id=>{const b=bm.get(id),l=lm.get(id),r=rm.get(id);
+  if(l&&r){const o={...r};new Set([...Object.keys(l),...Object.keys(r),...Object.keys(b||{})]).forEach(k=>{if(!same(l[k],b&&b[k])){if(l[k]===undefined)delete o[k];else o[k]=l[k]}});co.push(o)}
+  else if(l){if(!b||!same(l,b))co.push(l)}
+  else if(r){if(!b||!same(r,b))co.push(r)}});
+ out.co=co;return out}
+const dbApply=d=>{S=Object.assign({co:[],bk:[],map:DEF,inc:true},d,{xd:false})};
+async function dbPush(){for(let t=0;t<4;t++){const loc=dbState();let ok=false,r,j;
+  if(!DB.ver){r=await dbReq("mis_state",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({id:"main",data:loc,version:1})});if(r.ok){j=await r.json();DB.ver=j[0].version;ok=true}}
+  else{r=await dbReq("mis_state?id=eq.main&version=eq."+DB.ver,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({data:loc,version:DB.ver+1,updated_at:new Date().toISOString()})});j=await r.json();if(j.length){DB.ver=j[0].version;ok=true}}
+  if(ok){DB.base=loc;dbSaveMeta();return}
+  const rem=await dbRow("version,data");if(!rem){DB.ver=0;continue}
+  dbApply(merge3(DB.base,loc,rem.data));S.xd=true;DB.ver=rem.version;DB.base=rem.data;render()}
+ throw new Error("busy – will retry")}
+async function xPushDb(){if(XB){XQueued=true;return false}clearTimeout(xt);xt=null;XB=true;XQueued=false;let ok=false;
+ try{await dbPush();S.xd=false;ok=true;xst("Database synced "+xnow(),"o")}catch(e){S.xd=true;xst("⚠ Not synced: "+(e.message||"offline")+" – will retry","w")}
  finally{XB=false;try{localStorage.setItem("mis_v1",JSON.stringify(S))}catch(e){}if(XQueued&&ok){clearTimeout(xt);xt=setTimeout(()=>xPush(),150)}}return ok}
-async function ghPull(first){try{if(S.xd&&!(await xPushGh()))return;
- const st=await ghGet(ghS());let stateNew=false,ch=false;
- if(st&&st.sha!==GH.meta.state){const r=JSON.parse(new TextDecoder().decode(st.buf));S=Object.assign({co:[],bk:[],map:DEF,inc:true},r,{xd:false});GH.meta.state=st.sha;GH.last=JSON.stringify(ghState());stateNew=true;ch=true}
- const x=await ghGet(ghX());
- if(x&&x.sha!==GH.meta.xlsx){if(!stateNew){const L=readXlsx(x.buf);mergeIn(L,"merge");fixCd();S.issues=L.issues||[];ch=true}GH.meta.xlsx=x.sha}
- ghMeta();if(ch){try{localStorage.setItem("mis_v1",JSON.stringify(S))}catch(e){}render()}
- if(first&&!st){await xPushGh()}else xst("GitHub synced "+xnow(),"o")}catch(e){xst("⚠ GitHub: "+(e.message||"offline"),"w")}}
-function ghDlg(){const c=ghc()||{},dlg=$("#dlg");
- dlg.innerHTML=`<div class="dh">Sync with GitHub (all your devices)</div><div class="db"><p class="f mut" style="margin:0;font-size:12px">Use a <b>private</b> repository for your data. Create a fine-grained token limited to that one repository with <b>Contents: Read and write</b>. The token stays in this browser only; repeat once on each device.</p>
- <label class="f">Data repository (owner/name)<input id="ghr" value="${esc(c.repo||"PrathamDaya/MIS-data")}"></label><label class="f">Excel file in the repo<input id="ghf" value="${esc(c.file||"Portfolio.xlsx")}"></label><label class="f">Branch<input id="ghb" value="${esc(c.branch||"main")}"></label><label class="f">Token<input id="ght" type="password" value="${esc(c.token||"")}" autocomplete="off" placeholder="github_pat_…"></label></div>
- <div class="df">${c.repo?'<button class="btn" value="off">Disconnect</button>':""}<button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Connect & sync</button></div>`;
+async function dbPull(first){if(!first&&(xt||XB))return;try{if(S.xd&&!(await xPushDb()))return;
+ const m=await dbRow("version");if(!m){if(first&&S.co.length)await xPushDb();else xst("Database connected – empty","o");return}
+ if(m.version!==DB.ver){const r=await dbRow("version,data");dbApply(r.data);DB.ver=r.version;DB.base=r.data;dbSaveMeta();try{localStorage.setItem("mis_v1",JSON.stringify(S))}catch(e){}render()}
+ xst("Database synced "+xnow(),"o")}catch(e){xst("⚠ Database: "+(e.message||"offline"),"w")}}
+const dbPoll=()=>{if(!DB.poll)DB.poll=setInterval(()=>{if(XH&&XH.db&&!document.hidden)xPull()},15000)};
+function dbDlg(){const c=DB.cfg()||{},dlg=$("#dlg");
+ dlg.innerHTML=`<div class="dh">Database sync (all your devices)</div><div class="db"><p class="f mut" style="margin:0;font-size:12px">Sign in to your Supabase project. Every device that signs in sees the same cases, saved instantly. Your password is not stored; this browser keeps a sign-in session.</p>
+ <label class="f">Project URL<input id="dbu" value="${esc(c.url||"")}" placeholder="https://xxxx.supabase.co"></label><label class="f">Publishable (anon) key<input id="dbk" value="${esc(c.key||"")}" placeholder="sb_publishable_… or eyJ…"></label><label class="f">Email<input id="dbe" type="email" value="${esc(c.email||"")}" autocomplete="username"></label><label class="f">Password<input id="dbp" type="password" autocomplete="current-password"></label></div>
+ <div class="df">${c.url?'<button class="btn" value="off">Sign out</button>':""}<button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Connect &amp; sync</button></div>`;
  dlg.showModal();dlg.onclick=async e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
-  if(v==="off"){localStorage.removeItem("mis_gh");localStorage.removeItem("mis_gh_meta");GH.meta={};XH=null;dlg.close();xst("Link Excel file");return toast("GitHub sync turned off on this device")}
-  const cfg={repo:$("#ghr").value.trim().replace(/^https?:\/\/github\.com\//,"").replace(/\/$/,""),file:$("#ghf").value.trim()||"Portfolio.xlsx",branch:$("#ghb").value.trim()||"main",token:$("#ght").value.trim()};
-  if(!/^[\w.-]+\/[\w.-]+$/.test(cfg.repo)||!cfg.token)return toast("Enter owner/name and the token");
-  const old=localStorage.getItem("mis_gh");localStorage.setItem("mis_gh",JSON.stringify(cfg));
-  try{const r=await ghReq("");if(!r.ok&&r.status!==404)throw new Error("GitHub "+r.status+(r.status===401?" – token wrong":r.status===404?"":" – check repository and token access"));
-   const rr=await fetch("https://api.github.com/repos/"+cfg.repo,{headers:{Authorization:"Bearer "+cfg.token}});if(!rr.ok)throw new Error("Cannot open repository ("+rr.status+")");const ri=await rr.json();
-   if(!ri.private&&!confirm("This repository is PUBLIC. Anyone could read your client data. Use a private repository.\n\nContinue anyway?")){throw new Error("Cancelled: use a private repository")}
-   GH.meta={};dlg.close();XH={gh:true};if(!GH.poll){GH.poll=setInterval(()=>{if(XH&&XH.gh&&!document.hidden&&!XB&&!xt&&!S.xd)xPull()},20000)}xst("Connecting GitHub…");await xPull(true);toast("GitHub sync is on for this device")}
-  catch(err){if(old)localStorage.setItem("mis_gh",old);else localStorage.removeItem("mis_gh");toast("Couldn't connect: "+err.message)}}}
+  if(v==="off"){localStorage.removeItem("mis_db");localStorage.removeItem("mis_db_meta");DB.ver=0;DB.base=null;XH=null;dlg.close();xst("Link Excel file");return toast("Signed out of database sync on this device")}
+  const cfg={url:$("#dbu").value.trim().replace(/\/+$/,"").replace(/\/rest\/v1$/,""),key:$("#dbk").value.trim(),email:$("#dbe").value.trim()},pw=$("#dbp").value;
+  if(!/^https:\/\/[\w-]+\.supabase\.co$/.test(cfg.url))return toast("Project URL should look like https://xxxx.supabase.co");
+  if(!cfg.key||!cfg.email||!pw)return toast("Enter the key, email and password");
+  if(/^sb_secret_/.test(cfg.key)||(()=>{try{return /service_role/.test(atob((cfg.key.split(".")[1]||"").replace(/-/g,"+").replace(/_/g,"/")))}catch(e){return false}})())return toast("That is the secret key. Use the publishable / anon key instead.");
+  const oldCfg=localStorage.getItem("mis_db"),oldMeta=localStorage.getItem("mis_db_meta");
+  try{await dbAuth(cfg,"password",{email:cfg.email,password:pw});localStorage.setItem("mis_db",JSON.stringify(cfg));
+   const prev=oldCfg?JSON.parse(oldCfg):null;if(!prev||prev.url!==cfg.url){DB.ver=0;DB.base=null;localStorage.removeItem("mis_db_meta")}
+   const m=await dbRow("version");
+   if(m&&S.co.length&&!DB.base&&!confirm("The database already has data. Replace the "+S.co.length+" case(s) on this device with the database version?\n\nOK = use the database data\nCancel = stop"))throw new Error("Cancelled")
+   dlg.close();XH={db:true};dbPoll();xst("Connecting…");await xPull(true);toast("Database sync is on for this device")}
+  catch(err){if(oldCfg)localStorage.setItem("mis_db",oldCfg);else localStorage.removeItem("mis_db");if(oldMeta)localStorage.setItem("mis_db_meta",oldMeta);toast("Couldn't connect: "+err.message)}}}
 $("#xs").onclick=async()=>{if(XH){await xPull(true);return xPush()}if(XP){try{if(await XP.requestPermission({mode:"readwrite"})==="granted"){XH=XP;XP=null;await xPull(true);await xPush();return}}catch(e){}}xLink()};
 window.addEventListener("focus",()=>{xPull()});
-if(ghc()){XH={gh:true};xst("Connecting GitHub…");xPull(true);setInterval(()=>{if(XH&&XH.gh&&!document.hidden&&!XB&&!xt&&!S.xd)xPull()},20000)}else if(window.indexedDB)idb("get","h").then(async h=>{if(!h)return;try{if(await h.queryPermission({mode:"readwrite"})==="granted"){XH=h;await xPull(true)}else{XP=h;xst(S.xd?"Reconnect Excel · changes waiting":"Reconnect Excel","w");document.addEventListener("pointerdown",async e=>{if(!XP||e.target.closest&&e.target.closest("#xs"))return;try{const h2=XP;if(await h2.requestPermission({mode:"readwrite"})==="granted"){XH=h2;XP=null;await xPull(true);await xPush()}}catch(x){}},{once:true,capture:true})}}catch(e){}}).catch(()=>{});
+if(DB.cfg()){dbLoadMeta();XH={db:true};xst("Connecting…");dbPoll();xPull(true)}else if(window.indexedDB)idb("get","h").then(async h=>{if(!h)return;try{if(await h.queryPermission({mode:"readwrite"})==="granted"){XH=h;await xPull(true)}else{XP=h;xst(S.xd?"Reconnect Excel · changes waiting":"Reconnect Excel","w");document.addEventListener("pointerdown",async e=>{if(!XP||e.target.closest&&e.target.closest("#xs"))return;try{const h2=XP;if(await h2.requestPermission({mode:"readwrite"})==="granted"){XH=h2;XP=null;await xPull(true);await xPush()}}catch(x){}},{once:true,capture:true})}}catch(e){}}).catch(()=>{});
 /* ---------- post-committee deadlines (working days) ---------- */
 const NOW=()=>new Date(new Date().toDateString()+" 00:00"),DK=[["sd",1],["ud",7]];
 const isWD=d=>{const w=d.getDay();return w!==0&&(S.sat||w!==6)&&!(S.hol||[]).includes(iso(d))};
