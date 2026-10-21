@@ -450,7 +450,7 @@ function patchXlsx(buf,cos){const z=new PizZip(buf),P=t=>new DOMParser().parseFr
  return z.generate({type:"uint8array",compression:"DEFLATE"})}
 
 /* ---------- Database sync (Supabase): one shared, login-protected copy for every device ---------- */
-const DB={ver:0,base:null,lock:null,cfg:()=>{try{return JSON.parse(localStorage.getItem("mis_db")||"null")}catch(e){return null}}};
+const DB_URL="https://wpkowlgljmcfvusrmsea.supabase.co",DB_KEY="sb_publishable_e6bAV65GDPmgdbUn2Ja-2Q__z2q-5bu";const DB={ver:0,base:null,lock:null,cfg:()=>{try{const c=JSON.parse(localStorage.getItem("mis_db")||"null");return c?{...c,url:DB_URL,key:DB_KEY}:null}catch(e){return null}}};
 const dbSaveCfg=c=>{try{localStorage.setItem("mis_db",JSON.stringify(c))}catch(e){}},dbSaveMeta=()=>{try{localStorage.setItem("mis_db_meta",JSON.stringify({ver:DB.ver,base:DB.base}))}catch(e){}},dbLoadMeta=()=>{try{const m=JSON.parse(localStorage.getItem("mis_db_meta")||"null");if(m){DB.ver=m.ver||0;DB.base=m.base||null}}catch(e){}};
 const dbState=()=>{const o=JSON.parse(JSON.stringify(S));delete o.xd;delete o.issues;return o};
 async function dbAuth(c,grant,body){const r=await fetch(c.url+"/auth/v1/token?grant_type="+grant,{method:"POST",headers:{apikey:c.key,"Content-Type":"application/json"},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));
@@ -487,14 +487,14 @@ async function dbPull(first){if(!first&&(xt||XB))return;try{if(S.xd&&!(await xPu
  xst("Database synced "+xnow(),"o")}catch(e){xst("⚠ Database: "+(e.message||"offline"),"w")}}
 const dbPoll=()=>{if(!DB.poll)DB.poll=setInterval(()=>{if(XH&&XH.db&&!document.hidden)xPull()},15000)};
 function dbDlg(){const c=DB.cfg()||{},dlg=$("#dlg");
- dlg.innerHTML=`<div class="dh">Database sync (all your devices)</div><div class="db"><p class="f mut" style="margin:0;font-size:12px">Sign in to your Supabase project. Every device that signs in sees the same cases, saved instantly. Your password is not stored; this browser keeps a sign-in session.</p>
- <label class="f">Project URL<input id="dbu" value="${esc(c.url||"")}" placeholder="https://xxxx.supabase.co"></label><label class="f">Publishable (anon) key<input id="dbk" value="${esc(c.key||"")}" placeholder="sb_publishable_… or eyJ…"></label><label class="f">Email<input id="dbe" type="email" value="${esc(c.email||"")}" autocomplete="username"></label><label class="f">Password<input id="dbp" type="password" autocomplete="current-password"></label></div>
+ dlg.innerHTML=`<div class="dh">Database sync (all your devices)</div><div class="db"><p class="f mut" style="margin:0;font-size:12px">Sign in with your Supabase account. The database connection is already set up for this website. Each analyst uses their own email and password. Your password is not stored; this browser keeps a sign-in session.</p>
+ <label class="f">Email<input id="dbe" type="email" value="${esc(c.email||"")}" autocomplete="username"></label><label class="f">Password<input id="dbp" type="password" autocomplete="current-password"></label></div>
  <div class="df">${c.url?'<button class="btn" value="off">Sign out</button>':""}<button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Connect &amp; sync</button></div>`;
  dlg.showModal();dlg.onclick=async e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
   if(v==="off"){localStorage.removeItem("mis_db");localStorage.removeItem("mis_db_meta");DB.ver=0;DB.base=null;XH=null;dlg.close();xst("Link Excel file");return toast("Signed out of database sync on this device")}
-  const cfg={url:$("#dbu").value.trim().replace(/\/+$/,"").replace(/\/rest\/v1$/,""),key:$("#dbk").value.trim(),email:$("#dbe").value.trim()},pw=$("#dbp").value;
+  const cfg={url:DB_URL,key:DB_KEY,email:$("#dbe").value.trim()},pw=$("#dbp").value;
   if(!/^https:\/\/[\w-]+\.supabase\.co$/.test(cfg.url))return toast("Project URL should look like https://xxxx.supabase.co");
-  if(!cfg.key||!cfg.email||!pw)return toast("Enter the key, email and password");
+  if(!cfg.email||!pw)return toast("Enter your email and password");
   if(/^sb_secret_/.test(cfg.key)||(()=>{try{return /service_role/.test(atob((cfg.key.split(".")[1]||"").replace(/-/g,"+").replace(/_/g,"/")))}catch(e){return false}})())return toast("That is the secret key. Use the publishable / anon key instead.");
   const oldCfg=localStorage.getItem("mis_db"),oldMeta=localStorage.getItem("mis_db_meta");
   try{await dbAuth(cfg,"password",{email:cfg.email,password:pw});localStorage.setItem("mis_db",JSON.stringify(cfg));
