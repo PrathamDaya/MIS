@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Pratham MIS Tracker</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/vendor/pizzip.min.js"></script>
+</head>
+<body>
+<header><h1>Pratham MIS Tracker<small id="today"></small></h1>
+<nav><button data-v="mis" class="on" aria-current="page">All cases</button><button data-v="ncd" aria-current="false">NCD <span id="nc" class="tag ac">0</span></button><button data-v="ins" aria-current="false">Insights</button><button data-v="dl" aria-current="false">Deadlines <span id="dc" class="tag bad" hidden="">0</span></button><button data-v="cmt" aria-current="false">Committee <span id="bc" class="tag ac">0</span></button></nav>
+<div class="sp"></div><button class="btn p" id="add">+ Add company</button><details class="more"><summary class="btn" aria-label="More actions" data-s="o">⋯</summary><div class="menu"><button id="xs" title="Keep your Excel file and the tracker in sync">Link Excel file</button><button id="ghs" onclick="ghDlg()">GitHub sync…</button><button id="imp">Import Excel</button><button id="bk">Backup &amp; restore</button><button id="rules">Rating rules</button><button id="th">Switch to light mode</button></div></details></header>
+<main id="app"><p class="mut" style="padding:24px">Loading…</p></main><div id="toast"></div><div id="sel" hidden=""></div>
+<dialog id="dlg"></dialog><input type="file" id="fi" hidden="">
+<script src="js/app.js"></script>
+</body>
+</html>
