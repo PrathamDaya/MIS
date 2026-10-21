@@ -126,3 +126,67 @@ nav button.on{animation:tabActivate .28s var(--ease)}
 @media(max-width:760px){.case{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px}.case>div:nth-child(3){grid-column:auto;grid-template-columns:minmax(0,1fr);align-items:stretch}.case .pair{grid-template-columns:22px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){#app>.view-enter,nav button.on{animation:none}}
 .date-filter{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--mut);font-size:12px;font-weight:650;white-space:nowrap}.date-filter input{min-height:31px;padding:4px 7px}.deadline-filters{display:flex;align-items:center;gap:10px;margin:14px 0 8px}.deadline-filters input[type=search]{flex:1;min-width:220px}.deadline-hint{margin:0 0 8px;font-size:11px}.tw.deadline-wrap{width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--sh)}.deadline-wrap table.deadline-table{width:100%;min-width:1180px;table-layout:fixed}.deadline-wrap th,.deadline-wrap td{white-space:nowrap}.deadline-wrap th:nth-child(1),.deadline-wrap td:nth-child(1){width:46px}.deadline-wrap th:nth-child(2),.deadline-wrap td:nth-child(2){width:250px}.deadline-wrap th:nth-child(3),.deadline-wrap td:nth-child(3){width:112px}.deadline-wrap th:nth-child(4),.deadline-wrap td:nth-child(4){width:100px}.deadline-wrap th:nth-child(5),.deadline-wrap td:nth-child(5){width:164px}.deadline-wrap th:nth-child(6),.deadline-wrap td:nth-child(6){width:166px}.deadline-wrap th:nth-child(7),.deadline-wrap td:nth-child(7){width:160px}.deadline-wrap th:nth-child(8),.deadline-wrap td:nth-child(8){width:166px}.deadline-wrap td:nth-child(2){white-space:normal;overflow-wrap:anywhere}.deadline-wrap td input[type=date]{display:block;width:100%!important;max-width:100%;min-width:0!important;padding:6px 7px;font-size:12px}.deadline-wrap td .btn{display:block;width:100%;min-width:0;margin:6px 0 0;padding:5px 8px;white-space:nowrap}.btn,input,select,textarea,.st{transition:background-color .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease),transform .2s var(--ease)}.st:hover{transform:translateY(-2px);box-shadow:var(--sh)}html{scroll-behavior:smooth}:root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}@media(max-width:760px){.deadline-filters{align-items:stretch;flex-direction:column}.deadline-filters input[type=search],.deadline-filters .date-filter{width:100%;min-width:0}.deadline-filters .date-filter{justify-content:space-between}.deadline-filters .date-filter input{flex:1;max-width:190px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,input,select,textarea,.st{transition:none!important}.st:hover{transform:none}}body{font-family:"Josefin Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0}button,input,select,textarea{font-family:inherit}
+
+
+/* Mobile layout: keep the MIS table readable and swipeable instead of squeezing columns. */
+@media(max-width:760px){
+  html,body{max-width:100%;overflow-x:hidden}
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:8px 12px}
+  header h1{min-width:0;font-size:15px}
+  header h1 small{font-size:10px}
+  header .sp{display:none}
+  header nav{grid-column:1/-1;grid-row:2;width:100%;max-width:100%;display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  header nav::-webkit-scrollbar{display:none}
+  header nav button{flex:0 0 auto;min-height:40px;padding:8px 12px;font-size:13px}
+  header #add{white-space:nowrap;min-height:40px;padding:7px 10px;font-size:13px}
+  header .more summary{width:40px;height:40px}
+  main{width:100%;max-width:none;padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px))}
+  .ttl h2{font-size:27px;line-height:1.1}
+  .ttl p{font-size:14px;margin-bottom:18px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:16px}
+  .st{min-width:0;padding:12px}
+  .st b{font-size:23px}
+  .st span{font-size:11px}
+  .bar{gap:8px}
+  .bar input[type=search]{flex:1 1 100%;width:100%;min-width:0;min-height:42px}
+  .bar>.btn,.bar>label{min-height:40px}
+  .tw:not(.deadline-wrap){width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--sh)}
+  .tw:not(.deadline-wrap)::before{content:"Swipe left or right to see all columns";display:block;position:sticky;left:0;z-index:2;width:100%;padding:7px 10px;color:var(--mut);font-size:11px;background:var(--card);border-bottom:1px solid var(--line)}
+  .tw:not(.deadline-wrap) table{width:max-content;min-width:1280px;table-layout:auto}
+  .tw:not(.deadline-wrap) th,.tw:not(.deadline-wrap) td{padding:8px 9px;font-size:12px;white-space:nowrap;overflow-wrap:normal;word-break:normal}
+  .tw:not(.deadline-wrap) th{vertical-align:top;min-width:90px}
+  .tw:not(.deadline-wrap) th:first-child,.tw:not(.deadline-wrap) td:first-child{width:42px;min-width:42px;text-align:center}
+  .tw:not(.deadline-wrap) th:nth-child(2){min-width:145px}
+  .tw:not(.deadline-wrap) th:nth-child(3),.tw:not(.deadline-wrap) td:nth-child(3){min-width:200px;max-width:260px;white-space:normal}
+  .tw:not(.deadline-wrap) th:nth-child(4){min-width:92px}
+  .tw:not(.deadline-wrap) th:nth-child(5){min-width:140px}
+  .tw:not(.deadline-wrap) th:nth-child(6){min-width:125px}
+  .tw:not(.deadline-wrap) th:nth-child(n+7){min-width:118px}
+  .tw:not(.deadline-wrap) th .col-filter{min-width:100px;max-width:none;min-height:36px;margin-top:6px;padding:6px 8px;font-size:12px}
+  .tw:not(.deadline-wrap) th input[type=date].col-filter{min-width:132px}
+  .tw:not(.deadline-wrap) th select.col-filter{min-width:138px}
+  .tw:not(.deadline-wrap) td input[type=date]{width:140px;min-width:140px;min-height:36px}
+  .tw:not(.deadline-wrap) .btn{min-height:36px;padding:6px 10px;font-size:12px}
+  .deadline-filters{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+  .deadline-filters input[type=search]{width:100%;min-width:0}
+  .date-filter{justify-content:space-between;white-space:normal}
+  .date-filter input{max-width:58%}
+  .deadline-wrap{max-width:100%}
+  dialog{width:calc(100vw - 20px);max-width:640px;max-height:calc(100dvh - 24px);margin:auto}
+  .dh{padding:14px 16px;font-size:17px}
+  .db{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 16px;max-height:calc(100dvh - 150px)}
+  .df{padding:12px 16px;flex-wrap:wrap}
+  .df .btn{min-height:40px}
+  #sel{width:calc(100vw - 20px);max-width:calc(100vw - 20px);bottom:calc(10px + env(safe-area-inset-bottom,0px));border-radius:18px}
+  #sel input{min-width:0;max-width:36vw}
+  .panel{padding:15px}
+}
+@media(max-width:420px){
+  header{grid-template-columns:minmax(0,1fr) auto auto;gap:6px;padding-left:9px;padding-right:9px}
+  header #add{font-size:12px;padding:6px 8px}
+  main{padding-left:9px;padding-right:9px}
+  .st{padding:10px}
+  .st b{font-size:21px}
+  .stats{gap:7px}
+  .tw:not(.deadline-wrap) table{min-width:1240px}
+}
