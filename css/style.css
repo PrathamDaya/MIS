@@ -23,7 +23,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-off
 .tw{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow-x:auto;box-shadow:var(--sh)}
 table{border-collapse:collapse;width:100%;min-width:980px}
 th{position:sticky;top:0;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);padding:10px 12px;border-bottom:1px solid var(--line);background:var(--card);white-space:nowrap}
-th.s{cursor:pointer}td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th.s{cursor:pointer}th .col-filter{display:block;width:100%;min-width:64px;margin-top:5px;padding:4px 6px;border-radius:6px;font:11px system-ui,sans-serif;text-transform:none;letter-spacing:normal}th input[type=date].col-filter{min-width:120px}th select.col-filter{max-width:150px}td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr.r:hover td{background:var(--bg)}tr.r td:nth-child(3){cursor:pointer;font-weight:600}
 .num{text-align:right;font-variant-numeric:tabular-nums}.mut{color:var(--mut)}
 .tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700;white-space:nowrap}
