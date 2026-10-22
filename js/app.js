@@ -75,11 +75,25 @@ async function out(name,data){try{const d=window.claude&&await claude.use("downl
  const a=document.createElement("a"),u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 const clean=s=>s.replace(/[\\\/:*?"<>|]/g,"_").trim().replace(/[. ]+$/,"");
 const PARTS=/^word\/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$/,PH=/\{\s*\{\s*([^{}]*?)\s*\}\s*\}/g;
-function fill(xml,vals,literals){
+function mailDates(c){
+ const dates=["m1","r1","r2"].map(k=>(c.ml&&c.ml.d&&c.ml.d[k])||(c.md&&c.md[k])||"").filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
+ const f=dates.map(x=>D0(x).toLocaleDateString("en-US",{month:"long",day:"2-digit",year:"numeric"}));
+ if(!f.length)return"–";if(f.length===1)return f[0];if(f.length===2)return f[0]+" and "+f[1];return f.slice(0,-1).join(", ")+", and "+f[f.length-1]
+}
+function needsNoOutlook(cl,cs){
+ const ratings=[cl,cs].filter(Boolean);
+ return ratings.some(r=>{const p=gp(r);return p&&p.g==="D"&&/(?:ISSUER\s+NOT\s+COOPERATING|\bINC\b)/i.test(r)})||(!cl&&!!cs)
+}
+function fill(xml,vals,literals,opts){
+ opts=opts||{};
  const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.getElementsByTagName("parsererror").length)throw new Error("unreadable template XML");
  for(const p of [...doc.getElementsByTagName("w:p")]){
   const ts=[...p.getElementsByTagName("w:t")].filter(t=>{let n=t.parentNode;while(n&&n.nodeName!=="w:p")n=n.parentNode;return n===p});if(!ts.length)continue;
-  const tx=ts.map(t=>t.textContent),full=tx.join(""),ln=tx.map(x=>x.length),st=[];let pos=0;ln.forEach(l=>{st.push(pos);pos+=l});
+  const tx=ts.map(t=>t.textContent),full=tx.join("");
+  if(opts.omitOutlook&&/Criteria of assigning rating outlook/i.test(full)){p.parentNode.removeChild(p);continue}
+  if(opts.notApplicable&&/^Outlook:\s*Negative$/i.test(full.trim())){ts[0].textContent="Outlook: Not Applicable";ts.slice(1).forEach(t=>t.textContent="");ts.forEach(t=>t.setAttribute("xml:space","preserve"));continue}
+  if(opts.notApplicable&&/^The Outlook remained negative due to information availability risk\.$/i.test(full.trim())){p.parentNode.removeChild(p);continue}
+  const ln=tx.map(x=>x.length),st=[];let pos=0;ln.forEach(l=>{st.push(pos);pos+=l});
   const ed=[];let m;PH.lastIndex=0;while((m=PH.exec(full))){const k=m[1].replace(/\s+/g," ").trim().toLowerCase();if(k in vals)ed.push([m.index,m.index+m[0].length,vals[k]])}
   Object.entries(literals||{}).forEach(([from,to])=>{if(!from)return;let at=0;while((at=full.indexOf(from,at))>=0){ed.push([at,at+from.length,String(to)]);at+=from.length}});
   ed.sort((a,b)=>b[0]-a[0]);
@@ -127,11 +141,11 @@ function generateDlg(){
     z.folder(root+"/Post Rating Process");z.folder(root+"/Rating Pack");z.folder(root+"/Rating Process");
     const dateText=dt.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
     const cl=cur(c,item.b,"lt"),cs=cur(c,item.b,"st");
-    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
-    const literals={"April 07, 2025":dateText,"(GMPL)":"","[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
+    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"mail dates":mailDates(c),"company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
+    const literals={"April 07, 2025":dateText,"[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
     for(const[k,label]of selected){
      const template=new PizZip(b64Bytes(S.docTemplates[k]));
-     template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),vals,literals)));
+     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),vals,literals,opts)));
      const typeFolder=k==="note"?"Rating Pack":"Post Rating Process",title=label==="Press Release"?"Press Release":label;
      z.folder(root+"/"+typeFolder).file(title+"_"+clean(c.n)+".docx",template.generate({type:"uint8array",compression:"DEFLATE"}));count++
     }
