@@ -270,29 +270,51 @@ function xlsx(H,R){const E=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&
 document.addEventListener("keydown",e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||$("#dlg").open||e.ctrlKey||e.metaKey)return;if(e.key==="/"){e.preventDefault();if(V!=="mis"&&V!=="ncd"){V="mis";render()}const q=$("#q");q&&q.focus()}else if(e.key==="n"){e.preventDefault();form()}});
 const ilink=n=>"https://www.infomerics.com/pressrelease/"+String(n).toLowerCase().replace(/^m\/s\.?\s*/,"").replace(/&/g," ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 const KN={m1:"Information checklist",r1:"Reminder 1",r2:"Reminder 2"},SH={m1:"Checklist",r1:"R1",r2:"R2"};
-const ML=()=>Object.assign({cc:TPL.cc,r1:"Dear {Contact},\n\nThis is a gentle reminder to our mail below regarding the information required for the surveillance of {Company}. Kindly share the details at the earliest.\n\nRegards,\nPratham",r2:"Dear {Contact},\n\nThis is a second reminder to our mail below. Kindly share the information required for the surveillance of {Company} at the earliest, failing which the rating may be reviewed on the basis of the information available.\n\nRegards,\nPratham"},S.mail||{});
+const DEFAULT_TPL={from:"",cc:"",subj:"Information required for surveillance of {{C}}",text:"Dear Sir/Madam,\n\nThis is with regard to the surveillance of the rating of {Company}. Kindly share the information and documents required for surveillance.\n\nRegards,\nPratham",att:null};
+let TPL=Object.assign({},DEFAULT_TPL,S.mail||{});
+const ML=()=>Object.assign({cc:TPL.cc||"",r1:"Dear {Contact},\n\nThis is a gentle reminder to our mail below regarding the information required for the surveillance of {Company}. Kindly share the details at the earliest.\n\nRegards,\nPratham",r2:"Dear {Contact},\n\nThis is a second reminder to our mail below. Kindly share the information required for the surveillance of {Company} at the earliest, failing which the rating may be reviewed on the basis of the information available.\n\nRegards,\nPratham"},S.mail||{});
 const fT=(t,c)=>t.replace(/\{(\w+)\}/g,(m,k)=>({Company:c.n,Contact:c.p||"Sir/Madam",Analyst:c.an,Date:fd(iso(TODAY)),Amount:c.a??""})[k]??m);
 const dueM=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{};return["m1","r1","r2"].filter(k=>D[k]&&!X[k]&&D[k]<=iso(TODAY))};
 const mst=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{},k=["m1","r1","r2"].find(k=>D[k]&&!X[k]);if(k)return`<span class="tag ${D[k]<=iso(TODAY)?"warn":"nu"}">${SH[k]} ${fd(D[k])}</span>`;const l=["r2","r1","m1"].find(k=>X[k]);return l?`<span class="tag ok">${SH[l]} drafted</span>`:""};
 const enc=t=>{const a=new TextEncoder().encode(t);let r="";for(let i=0;i<a.length;i+=8192)r+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(r)},wr=b=>b.replace(/.{1,76}/g,"$&\r\n"),eh=t=>/^[\x20-\x7e]*$/.test(t)?t:"=?UTF-8?B?"+enc(t)+"?=";
-function draft(c,k,to,cc){const M=ML(),sj=TPL.subj.replace("{{C}}",c.n),first=TPL.html.replace(/\{\{C\}\}/g,esc(c.n)),inner=h=>h.replace(/^[\s\S]*?<body[^>]*>/i,"").replace(/<\/body>[\s\S]*$/i,""),pd=x=>(c.ml&&c.ml.d&&c.ml.d[x])||iso(TODAY);
- const hd=x=>`<div style="border-top:1px solid #b5c4df;padding:6px 0;font:11pt Calibri,Arial,sans-serif"><b>From:</b> ${esc(TPL.from)}<br><b>Sent:</b> ${fd(pd(x))}<br><b>To:</b> ${esc(to)}<br><b>Cc:</b> ${esc(cc)}<br><b>Subject:</b> ${x==="m1"?"":"RE: "}${esc(sj)}</div>`,rem=x=>`<div style="font:12pt 'Aptos Narrow',Aptos,Calibri,sans-serif">${esc(fT(M[x],c)).replace(/\n/g,"<br>")}</div><br>`;
- let html,plain;if(k==="m1"){html=first;plain=TPL.text.replace("{{C}}",c.n)}else{html="<html><body>"+rem(k)+(k==="r2"?["r1","m1"]:["m1"]).map(x=>hd(x)+(x==="m1"?inner(first):rem(x))).join("")+"</body></html>";plain=fT(M[k],c)}
+function draft(c,k,to,cc){
+ const M=ML(),sj=fT(String(TPL.subj||DEFAULT_TPL.subj).replace(/\{\{C\}\}/g,c.n),c);
+ const baseText=fT(String(TPL.text||DEFAULT_TPL.text).replace(/\{\{C\}\}/g,c.n),c);
+ const first="<html><body>"+esc(baseText).replace(/\r?\n/g,"<br>")+"</body></html>";
+ const inner=h=>h.replace(/^[\s\S]*?<body[^>]*>/i,"").replace(/<\/body>[\s\S]*$/i,"");
+ const pd=x=>(c.ml&&c.ml.d&&c.ml.d[x])||iso(TODAY);
+ const hd=x=>`<div style="border-top:1px solid #b5c4df;padding:6px 0;font:11pt Calibri,Arial,sans-serif">${TPL.from?`<b>From:</b> ${esc(TPL.from)}<br>`:""}<b>Sent:</b> ${fd(pd(x))}<br><b>To:</b> ${esc(to)}<br><b>Cc:</b> ${esc(cc)}<br><b>Subject:</b> ${x==="m1"?"":"RE: "}${esc(sj)}</div>`;
+ const rem=x=>`<div style="font:12pt 'Aptos Narrow',Aptos,Calibri,sans-serif">${esc(fT(M[x],c)).replace(/\n/g,"<br>")}</div><br>`;
+ let html,plain;
+ if(k==="m1"){html=first;plain=baseText}
+ else{html="<html><body>"+rem(k)+(k==="r2"?["r1","m1"]:["m1"]).map(x=>hd(x)+(x==="m1"?inner(first):rem(x))).join("")+"</body></html>";plain=fT(M[k],c)}
  const B1="=_m"+Math.random().toString(36).slice(2),B2="=_a"+Math.random().toString(36).slice(2),part=(t,b)=>`--${B2}\r\nContent-Type: ${t}; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${wr(enc(b))}`;
- let e=`X-Unsent: 1\r\nFrom: ${TPL.from}\r\nTo: ${to}\r\nCc: ${cc}\r\nSubject: ${eh((k==="m1"?"":"RE: ")+sj)}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary="${B1}"\r\n\r\n--${B1}\r\nContent-Type: multipart/alternative; boundary="${B2}"\r\n\r\n${part("text/plain",plain)}${part("text/html",html)}--${B2}--\r\n`;
+ let e=`X-Unsent: 1\r\n${TPL.from?`From: ${TPL.from}\r\n`:""}To: ${to}\r\nCc: ${cc}\r\nSubject: ${eh((k==="m1"?"":"RE: ")+sj)}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary="${B1}"\r\n\r\n--${B1}\r\nContent-Type: multipart/alternative; boundary="${B2}"\r\n\r\n${part("text/plain",plain)}${part("text/html",html)}--${B2}--\r\n`;
  if(k==="m1"&&TPL.att)e+=`--${B1}\r\nContent-Type: ${TPL.att.type}; name="${TPL.att.name}"\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename="${TPL.att.name}"\r\n\r\n${wr(TPL.att.b64)}`;
- return{name:`${KN[k]} - ${clean(c.n)}.eml`,data:e+`--${B1}--\r\n`,to,cc,subj:(k==="m1"?"":"RE: ")+sj,html,k,dt:(c.ml&&c.ml.d&&c.ml.d[k])||""}}
+ return{name:`${KN[k]} - ${clean(c.n)}.eml`,data:e+`--${B1}--\r\n`,to,cc,subj:(k==="m1"?"":"RE: ")+sj,html,k,dt:(c.ml&&c.ml.d&&c.ml.d[k])||""}
+}
 function mark(c,k){c.ml=c.ml||{};c.ml.s=Object.assign({},c.ml.s,{[k]:iso(TODAY)})}
 function mailDlg(id){const c=co(id),m=c.ml||{},D=m.d||{},X=m.s||{},dlg=$("#dlg"),M=ML();dlg.dataset.id=id;
  dlg.innerHTML=`<div class="dh">Mails · ${esc(c.n)}</div><div class="db"><label class="f">To (client)<input id="mt" value="${esc(c.em||"")}"></label><label class="f">CC<input id="mc" value="${esc(M.cc)}"></label>
  ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">drafted ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Create draft</button></div>`).join("")}
- <p class="f mut" style="margin:0;font-size:12px">Pick a date for each mail. Create draft downloads a script that places the message in classic Outlook Drafts with any future delivery date set to 10:00. Open it, review the draft, and press Send to activate scheduling.</p></div><div class="df"><button class="btn" value="t">Reminder wording…</button><button class="btn" value="x">Close</button></div>`;
+ <p class="f mut" style="margin:0;font-size:12px">Pick a date for each mail. Create draft downloads a script that places the message in classic Outlook Drafts with any future delivery date set to 10:00. Open it, review the draft, and press Send to activate scheduling.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
  dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(to)c.em=to;const d=draft(c,k,to,cc);await out("MIS-Outlook-Draft-"+clean(c.n)+"-"+k+"-"+Date.now()+".vbs",vbs([d]));mark(c,k);save();render();return mailDlg(id)}
   if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(id)}}
-function mailSet(id){const M=ML(),dlg=$("#dlg"),K=[["r1","Reminder 1 wording",6],["r2","Reminder 2 wording",6]];
- dlg.innerHTML=`<div class="dh">Mail settings</div><div class="db"><label class="f">Default CC (from your template)<input id="mx_cc" value="${esc(M.cc)}"></label>${K.map(([k,l,r])=>`<label class="f">${l}<textarea id="mx_${k}" rows="${r}">${esc(M[k])}</textarea></label>`).join("")}<p class="f mut" style="margin:0;font-size:12px">Placeholders: {Company} {Contact} {Analyst} {Date} {Amount}. The checklist mail itself always uses your .eml template.</p></div><div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save</button></div>`;
- dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return mailDlg(id);if(v==="r"){S.mail=null;save();return mailSet(id)}
-  S.mail={cc:$("#mx_cc").value};K.forEach(([k])=>S.mail[k]=$("#mx_"+k).value);save();toast("Saved");mailDlg(id)}}
+function mailSet(id,returnToBulk=false){
+ const M=ML(),dlg=$("#dlg"),K=[["r1","Reminder 1 wording",6],["r2","Reminder 2 wording",6]];
+ dlg.innerHTML=`<div class="dh">Mail wording</div><div class="db">
+ <label class="f">Default CC<input id="mx_cc" value="${esc(M.cc)}"></label>
+ <label class="f">Checklist subject<input id="mx_subj" value="${esc(TPL.subj)}"></label>
+ <label class="f">Checklist message<textarea id="mx_text" rows="7">${esc(TPL.text)}</textarea></label>
+ ${K.map(([k,l,r])=>`<label class="f">${l}<textarea id="mx_${k}" rows="${r}">${esc(M[k])}</textarea></label>`).join("")}
+ <p class="f mut" style="margin:0;font-size:12px">The checklist message and reminders are saved to this MIS account and used in the Outlook drafts. Placeholders: {Company}, {Contact}, {Analyst}, {Date}, {Amount}; the subject also supports {{C}}.</p></div>
+ <div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save wording</button></div>`;
+ dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();
+  if(v==="x")return returnToBulk?bulkMail():mailDlg(id);
+  if(v==="r"){S.mail=null;TPL=Object.assign({},DEFAULT_TPL);save();return mailSet(id,returnToBulk)}
+  S.mail={cc:$("#mx_cc").value.trim(),subj:$("#mx_subj").value,text:$("#mx_text").value,r1:$("#mx_r1").value,r2:$("#mx_r2").value};
+  TPL=Object.assign({},DEFAULT_TPL,S.mail);save();toast("Mail wording saved");return returnToBulk?bulkMail():mailDlg(id)}
+}
 function vbs(items){const ymd=dt=>dt&&dt>=iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att),attName=TPL.att?String(TPL.att.name||"attachment").replace(/[^a-zA-Z0-9._ -]/g,"_"):"x";
  return`' Pratham MIS Tracker: creates ${items.length} draft(s) in your Outlook Drafts folder
 Option Explicit
@@ -359,7 +381,7 @@ function bulkMail(){
  '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; fill those in before creating drafts.</b> ':"")+'Click <b>Create Outlook drafts</b> to download one script for all selected mails. Open the script on this Windows computer to create the drafts in classic Outlook. Future dates are set to deliver at 10:00. Review each draft and press Send to activate scheduling. This script requires classic Outlook; the .eml ZIP is a manual fallback.</p></div>'+
  '<div class="df"><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml ZIP</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>';
  dlg.showModal();dlg.onclick=async e=>{
-  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true);
   const dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
   if(v==="s"){save();render();return toast("Dates set for all "+cs.length+" selected cases")}
   const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
