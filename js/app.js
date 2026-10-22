@@ -350,118 +350,25 @@ MsgBox cnt&" draft(s) saved in your Outlook Drafts folder. Review them and press
 `.replace(/\r?\n/g,"\r\n")}
 const ymdS=dt=>dt&&dt>iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0";
 const payload=it=>{const L=[];if(it.some(i=>i.k==="m1")&&TPL.att)L.push("ATT|"+TPL.att.name+"|"+TPL.att.b64);it.forEach(i=>L.push(["MAIL",i.k,enc(i.to),enc(i.cc),enc(i.subj),enc(i.html),ymdS(i.dt)].join("|")));return L.join("\r\n")+"\r\n"};
-const HELPER=`' MIS Tracker Outlook helper: turns "MIS-Outlook-Mails-*.txt" files in Downloads into drafts in Outlook
-Option Explicit
-Dim fso,sh,dl,f,lst,p,a
-Set fso=CreateObject("Scripting.FileSystemObject")
-Set sh=CreateObject("WScript.Shell")
-dl=""
-On Error Resume Next
-dl=CreateObject("Shell.Application").Namespace("shell:Downloads").Self.Path
-On Error GoTo 0
-If dl="" Then dl=sh.ExpandEnvironmentStrings("%USERPROFILE%")&"\\Downloads"
-Function D(b)
-If b="" Then
-D=""
-Exit Function
-End If
-Dim x,n,s
-Set x=CreateObject("MSXML2.DOMDocument")
-Set n=x.createElement("b")
-n.dataType="bin.base64"
-n.text=b
-Set s=CreateObject("ADODB.Stream")
-s.Type=1
-s.Open
-s.Write n.nodeTypedValue
-s.Position=0
-s.Type=2
-s.Charset="utf-8"
-D=s.ReadText
-s.Close
-End Function
-Sub SaveB64(b,path)
-Dim x,n,s
-Set x=CreateObject("MSXML2.DOMDocument")
-Set n=x.createElement("b")
-n.dataType="bin.base64"
-n.text=b
-Set s=CreateObject("ADODB.Stream")
-s.Type=1
-s.Open
-s.Write n.nodeTypedValue
-s.SaveToFile path,2
-s.Close
-End Sub
-Sub Proc(path)
-Dim q,ts,ln,v,cnt,tmp,ol,m,d3
-tmp=""
-cnt=0
-q=path&".processing"
-On Error Resume Next
-fso.MoveFile path,q
-If Err.Number<>0 Then Exit Sub
-Err.Clear
-Set ol=CreateObject("Outlook.Application")
-If Err.Number<>0 Then
-fso.MoveFile q,path&".failed"
-sh.Popup "MIS Tracker: could not start classic Outlook. Open Outlook and save the mails file again.",10,"MIS Tracker",16
-Exit Sub
-End If
-Set ts=fso.OpenTextFile(q,1)
-Do While Not ts.AtEndOfStream
-ln=ts.ReadLine
-v=Split(ln,"|")
-If UBound(v)>=2 Then
-If v(0)="ATT" Then
-tmp=fso.GetSpecialFolder(2)&"\\"&v(1)
-SaveB64 v(2),tmp
-ElseIf v(0)="MAIL" And UBound(v)>=6 Then
-Set m=ol.CreateItem(0)
-m.To=D(v(2))
-m.CC=D(v(3))
-m.Subject=D(v(4))
-m.HTMLBody=D(v(5))
-If v(1)="m1" And tmp<>"" Then m.Attachments.Add tmp
-d3=Split(v(6),",")
-If CInt(d3(0))>0 Then m.DeferredDeliveryTime=DateSerial(CInt(d3(0)),CInt(d3(1)),CInt(d3(2)))+TimeSerial(10,0,0)
-m.Save
-cnt=cnt+1
-End If
-End If
-Loop
-ts.Close
-If tmp<>"" Then fso.DeleteFile tmp
-fso.DeleteFile q
-sh.Popup cnt&" draft(s) saved in your Outlook Drafts folder. Review them and press Send.",8,"MIS Tracker",64
-End Sub
-Do
-lst=""
-For Each f In fso.GetFolder(dl).Files
-If LCase(Left(f.Name,18))="mis-outlook-mails-" And LCase(Right(f.Name,4))=".txt" Then lst=lst&f.Path&"|"
-Next
-If lst<>"" Then
-For Each p In Split(lst,"|")
-If p<>"" Then Proc p
-Next
-End If
-WScript.Sleep 3000
-Loop
-`.replace(/\r?\n/g,"\r\n");
-function setupDlg(){const dlg=$("#dlg");dlg.innerHTML=`<div class="dh">One-time setup for one-click drafts</div><div class="db"><ol class="f" style="margin:0;padding-left:18px;line-height:1.8"><li>Click <b>Copy helper</b> below.</li><li>Press <b>Win + R</b>, type <b>shell:startup</b> and press Enter. A folder opens.</li><li>Open Notepad, paste, then <b>File → Save As</b>: choose that folder, name it <b>MIS-Outlook-Helper.vbs</b>, Save as type <b>All files</b>.</li><li>Double-click the saved file once. It then starts by itself every time you sign in.</li></ol><p class="f mut" style="margin:0;font-size:12px">After that, <b>Create Outlook drafts</b> is a single click: the mails file lands in your Downloads folder and the helper turns it into drafts in Outlook within a few seconds. Needs classic Outlook on Windows. To remove it, delete the file from the Startup folder.</p></div><div class="df"><button class="btn" value="x">Back</button><button class="btn p" value="c">Copy helper</button></div>`;
- dlg.showModal();dlg.onclick=async e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return bulkMail();try{await navigator.clipboard.writeText(HELPER);toast("Helper copied: paste it into Notepad")}catch(_){toast("Copy was blocked by the browser")}}}
-function bulkMail(){const cs=S.bk.map(b=>co(b.id)).filter(Boolean),dlg=$("#dlg"),M=ML(),d0=(cs[0]&&cs[0].ml&&cs[0].ml.d)||{},nm=cs.filter(c=>!c.em).length;
- dlg.innerHTML=`<div class="dh">Mails for ${cs.length} committee case(s)</div><div class="db"><label class="f">CC (from your template)<input id="bc2" value="${esc(M.cc)}"></label>
- ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center"><b>${v}: mail date for all</b><input type="date" id="bd_${k}" value="${d0[k]||""}"></div>`).join("")}
- <label class="f">Create now<select id="bk2">${Object.entries(KN).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}<option value="all" selected>All three mails for each company</option></select></label>
- <p class="f mut" style="margin:0;font-size:12px">${nm?`<b style="color:var(--bad)">${nm} case(s) have no client email.</b> `:""}<b>Create Outlook drafts</b> saves one mails file; the Outlook helper (one-time setup, button below) turns it into a separate draft for every company and mail in Outlook's Drafts folder: To = client, CC as above, your template and attachment, reminders with the trail. A mail with a date is set to deliver on that date at 10:00 once you press Send. Needs classic Outlook on Windows. Fallback: <b>Download .eml files</b>, unzip, select all and drag into Outlook's Drafts folder.</p></div>
- <div class="df"><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml files</button><button class="btn" value="c">One-time setup</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>`;
- dlg.showModal();dlg.onclick=async e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
-  if(v==="c")return setupDlg();const dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
-  if(v==="s"){save();render();return toast("Dates set for all "+cs.length+" cases")}
-  const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));cs.forEach(c=>ks.forEach(x=>mark(c,x)));save();render();
-  if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}else await out("MIS-Outlook-Mails-"+Date.now()+".txt",payload(dr));
-  dlg.close();toast(v==="z"?dr.length+" .eml drafts downloaded":"Mails file saved to Downloads: the Outlook helper turns it into drafts in a few seconds (do the one-time setup first if you haven't)")}}
+function bulkMail(){
+ const cs=S.bk.map(b=>co(b.id)).filter(Boolean),dlg=$("#dlg"),M=ML(),d0=(cs[0]&&cs[0].ml&&cs[0].ml.d)||{},nm=cs.filter(c=>!c.em).length;
+ if(!cs.length)return toast("Select cases in the committee basket first");
+ dlg.innerHTML='<div class="dh">Mails for '+cs.length+' committee case(s)</div><div class="db"><label class="f">CC (from your template)<input id="bc2" value="'+esc(M.cc)+'"></label>'+
+ Object.entries(KN).map(([k,v])=>'<div class="f" style="display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center"><b>'+v+': date for all selected cases</b><input type="date" id="bd_'+k+'" value="'+((d0&&d0[k])||"")+'"></div>').join("")+
+ '<label class="f">Create now<select id="bk2">'+Object.entries(KN).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'<option value="all" selected>All three mails for each company</option></select></label>'+
+ '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; fill those in before creating drafts.</b> ':"")+'Click <b>Create Outlook drafts</b> to download one script for all selected mails. Open the script on this Windows computer to create the drafts in classic Outlook. Future dates are set to deliver at 10:00. Review each draft and press Send to activate scheduling. This script requires classic Outlook; the .eml ZIP is a manual fallback.</p></div>'+
+ '<div class="df"><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml ZIP</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>';
+ dlg.showModal();dlg.onclick=async e=>{
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
+  const dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
+  if(v==="s"){save();render();return toast("Dates set for all "+cs.length+" selected cases")}
+  const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
+  if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}
+  else await out("MIS-Outlook-Drafts-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
+  cs.forEach(c=>ks.forEach(x=>mark(c,x)));save();dlg.close();render();
+  toast(v==="z"?dr.length+" .eml files downloaded":"Prepared "+dr.length+" Outlook drafts. Run the downloaded script, then review and send them.")
+ }
+}
 async function zipDue(){const z=new PizZip();let n=0,nm=0;for(const c of list()){for(const k of dueM(c)){if(!c.em)nm++;const d=draft(c,k,c.em||"",ML().cc);z.file(d.name,d.data);mark(c,k);n++}}
  if(!n)return toast("No mails are due");await out("Due mail drafts.zip",z.generate({type:"uint8array"}));save();render();toast(n+" drafts created"+(nm?` (${nm} without a client email)`:""))}
 /* ---------- Excel auto-sync (Chrome / Edge, File System Access) ---------- */
