@@ -113,13 +113,12 @@ function generateDlg(){
  const dlg=$("#dlg");
  dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db"><p class="f mut" style="margin:0 0 10px">Choose one or more document types. All selected cases will be combined into one ZIP with a folder for each company and committee month.</p>'+
  docKinds.map(([k,n])=>'<label class="f"><span><input type="checkbox" id="gen-'+k+'" checked> '+n+' · '+((S.docTemplates||{})[k]?'template saved':'template needed')+'</span></label>').join("")+
- '<p class="f mut" style="margin:0;font-size:12px">Each company needs a funding basis in its details (for example, Fund Based or Non-Fund Based). The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
+ '<p class="f mut" style="margin:0;font-size:12px">Short name, former name, and funding-basis placeholders in the Word templates are omitted automatically. The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
  dlg.showModal();dlg.onclick=async e=>{
   const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
   const selected=docKinds.filter(([k])=>$("#gen-"+k).checked);if(!selected.length)return toast("Select at least one document type");
   const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);if(!cases.length)return toast("Select at least one case first");
   const missing=selected.filter(([k])=>!(S.docTemplates||{})[k]);if(missing.length){dlg.close();return toast("Upload the "+missing.map(x=>x[1]).join(", ")+" template(s) with Update Word templates first")}
-  const noBasis=cases.find(x=>!String(x.c.basis||"").trim());if(noBasis){dlg.close();return toast("Add a funding basis to "+noBasis.c.n+" in its company details, then generate")}
   try{
    const z=new PizZip();let count=0;
    for(const item of cases){
@@ -128,8 +127,8 @@ function generateDlg(){
     z.folder(root+"/Post Rating Process");z.folder(root+"/Rating Pack");z.folder(root+"/Rating Process");
     const dateText=dt.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
     const cl=cur(c,item.b,"lt"),cs=cur(c,item.b,"st");
-    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"company short name":c.short||"","company acronym":c.short||"","short name":c.short||"","formerly known as":c.former||"","former name":c.former||"","funding basis":c.basis||""};
-    const literals={"April 07, 2025":dateText,"(GMPL)":c.short?"("+c.short+")":"","[Fund/Non-Fund based]":c.basis||"","[Formerly known as ...]":c.former?"(Formerly known as "+c.former+")":""};
+    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
+    const literals={"April 07, 2025":dateText,"(GMPL)":"","[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
     for(const[k,label]of selected){
      const template=new PizZip(b64Bytes(S.docTemplates[k]));
      template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),vals,literals)));
@@ -151,7 +150,7 @@ function doneDlg(ids){const dlg=$("#dlg"),cs=ids.map(i=>S.co.find(c=>c.id===i)).
  dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();const d=$("#dd").value;if(!d){toast("Pick a date");return}
   const all=[...cs,...($("#dall")?.checked?oth:[])],lp=$("#dlp").checked;all.forEach(c=>{if(c.dn)undone(c);c.dn=true;c.dd=d;if(lp){c.lp0=c.lp;c.lp=d}});S.ld=d;fin();toast(all.length+" case(s) marked done on "+fd(d))}}
 /* ---------- dialogs ---------- */
-const FLD=[["n","Company name","f"],["short","Short name / acronym"],["former","Former name (optional)"],["basis","Funding basis (e.g. Fund Based)"],["a","Amount (₹ Cr)","","number"],["an","Previous analyst"],["gh","Group head"],["lp","Last PR date","","date"],["cd","Committee date","","date"],["rlDate","Rating letter date","","date"],["fu","Follow-up date","","date"],["p","Contact person"],["ph","Number"],["em","Email","f"]];
+const FLD=[["n","Company name","f"],["a","Amount (₹ Cr)","","number"],["an","Previous analyst"],["gh","Group head"],["lp","Last PR date","","date"],["cd","Committee date","","date"],["rlDate","Rating letter date","","date"],["fu","Follow-up date","","date"],["p","Contact person"],["ph","Number"],["em","Email","f"]];
 const mk=(g,kind,ce,neg,inc)=>g?`IVR ${g}${ce?"(CE)":""}${kind==="lt"&&g!=="D"&&neg?" /Negative":""}${inc?"; ISSUER NOT COOPERATING":""}`:"";
 const gOpt=(arr,v)=>`<option value="">— none —</option>${arr.concat(v&&!arr.includes(v)?[v]:[]).map(x=>`<option ${x===v?"selected":""}>${x}</option>`).join("")}`;
 function rdd(c){const a=gp(c.lt),b=gp(c.st),inc=c.lt||c.st?/INC|ISSUER/i.test((c.lt||"")+(c.st||"")):true;
@@ -161,7 +160,7 @@ function rdd(c){const a=gp(c.lt),b=gp(c.st),inc=c.lt||c.st?/INC|ISSUER/i.test((c
 const uniq=k=>[...new Set(S.co.map(c=>String(c[k]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
 function selBox(k,l,cur){cur=String(cur||"").trim();return`<label>${l}<select name="${k}" data-new="${k}"><option value="">— select —</option>${uniq(k).map(x=>`<option ${x===cur?"selected":""}>${esc(x)}</option>`).join("")}<option value="__new">+ Add new…</option></select><input name="${k}2" placeholder="Type new name" hidden></label>`}
 $("#dlg").addEventListener("change",e=>{const t=e.target;if(t.name==="lg"){const o=$("#dlg").querySelector("[name=lo]");if(o)o.value=t.value==="D"?"0":"1"}if(t.dataset&&t.dataset.pd){const c=co(+$("#dlg").dataset.id),sy=S.bk.some(b=>b.id===c.id)&&S.bk.length>1,L2=sy?S.bk.map(b=>co(b.id)):[c];L2.forEach(x=>{x.ml=x.ml||{};x.ml.d=Object.assign({},x.ml.d,{[t.dataset.pd]:t.value})});save();render();if(sy)toast("Date applied to all "+L2.length+" committee cases");return}if(t.dataset&&t.dataset.new){const i=$("#dlg").querySelector(`[name=${t.dataset.new}2]`);i.hidden=t.value!=="__new";if(!i.hidden)i.focus()}});
-function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",short:"",former:"",basis:"",a:"",an:"",gh:"",lp:"",cd:"",rlDate:"",lt:"",st:"",p:"",ph:"",em:"",ncd:V==="ncd"};
+function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",a:"",an:"",gh:"",lp:"",cd:"",rlDate:"",lt:"",st:"",p:"",ph:"",em:"",ncd:V==="ncd"};
  dlg.innerHTML=`<div class="dh">${n?"Add company to MIS":esc(c.n)}</div><div class="db">${FLD.map(([k,l,f,t])=>k==="an"||k==="gh"?selBox(k,l,c[k]):`<label class="${f}">${l}<input name="${k}" type="${t||"text"}" step="any" value="${esc(c[k]??"")}" ></label>`).join("")}${rdd(c)}
  <label><span>Withdrawal basis<select name="withdrawType"><option value="" ${!c.withdrawType?"selected":""}>No withdrawal</option><option value="NOC" ${c.withdrawType==="NOC"?"selected":""}>NOC-based</option><option value="NDC" ${c.withdrawType==="NDC"?"selected":""}>NDC-based</option></select></span></label>
  <label><span><input type="checkbox" name="ncd" ${c.ncd?"checked":""}> NCD case</span></label><label class="f"><span><input type="checkbox" name="tr" ${c.tr?"checked":""}> Transferred (hide from active list)</span></label>
@@ -174,7 +173,7 @@ function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",short:"",former:"",basis:""
   if(!n&&nm.toLowerCase()!==c.n.toLowerCase()&&S.co.some(x=>x.id!==c.id&&x.n.toLowerCase()===nm.toLowerCase())){toast("Another company already has that name");return}
   const oldLp=c.lp||"",newLp=g("lp").value,oldHistory=Array.isArray(c.prHistory)?c.prHistory.slice():[];
   if(newLp&&newLp!==oldLp)oldHistory.push({date:newLp,kind:"Last PR date updated",at:new Date().toISOString()});
-  const o={n:nm,short:g("short").value.trim(),former:g("former").value.trim(),basis:g("basis").value.trim(),a:g("a").value===""?null:+g("a").value,an:sv("an"),gh:sv("gh"),lp:newLp,cd:g("cd").value,rlDate:g("rlDate").value,sd:g("rlDate").value,prHistory:oldHistory,withdrawType:g("withdrawType").value,lt:mk(g("lg").value,"lt",g("lce").checked,g("lo").value==="1",g("inc").checked),st:mk(g("sg").value,"st",g("sce").checked,false,g("inc").checked),p:g("p").value.trim(),ph:g("ph").value.trim(),em:g("em").value.trim(),ncd:g("ncd").checked,tr:g("tr").checked,fu:g("fu").value,nt:g("nt").value.trim(),w:g("rs").value==="1"||!!g("withdrawType").value};
+  const o={n:nm,a:g("a").value===""?null:+g("a").value,an:sv("an"),gh:sv("gh"),lp:newLp,cd:g("cd").value,rlDate:g("rlDate").value,sd:g("rlDate").value,prHistory:oldHistory,withdrawType:g("withdrawType").value,lt:mk(g("lg").value,"lt",g("lce").checked,g("lo").value==="1",g("inc").checked),st:mk(g("sg").value,"st",g("sce").checked,false,g("inc").checked),p:g("p").value.trim(),ph:g("ph").value.trim(),em:g("em").value.trim(),ncd:g("ncd").checked,tr:g("tr").checked,fu:g("fu").value,nt:g("nt").value.trim(),w:g("rs").value==="1"||!!g("withdrawType").value};
   if(!n&&nm!==c.n)o.xn=(c.xn&&key(c.xn)===key(nm))?undefined:(c.xn||c.n);
   if(o.withdrawType==="NOC"){o.w=true;o.withdrawStatus="Withdrawn after rating issued";}
   if(o.withdrawType==="NDC"){o.w=true;o.a=0;o.withdrawStatus="Withdrawn with amount reduced to ₹0.00 Cr";}
