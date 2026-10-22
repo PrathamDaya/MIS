@@ -293,7 +293,7 @@ function mailSet(id){const M=ML(),dlg=$("#dlg"),K=[["r1","Reminder 1 wording",6]
  dlg.innerHTML=`<div class="dh">Mail settings</div><div class="db"><label class="f">Default CC (from your template)<input id="mx_cc" value="${esc(M.cc)}"></label>${K.map(([k,l,r])=>`<label class="f">${l}<textarea id="mx_${k}" rows="${r}">${esc(M[k])}</textarea></label>`).join("")}<p class="f mut" style="margin:0;font-size:12px">Placeholders: {Company} {Contact} {Analyst} {Date} {Amount}. The checklist mail itself always uses your .eml template.</p></div><div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save</button></div>`;
  dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return mailDlg(id);if(v==="r"){S.mail=null;save();return mailSet(id)}
   S.mail={cc:$("#mx_cc").value};K.forEach(([k])=>S.mail[k]=$("#mx_"+k).value);save();toast("Saved");mailDlg(id)}}
-function vbs(items){const ymd=dt=>dt&&dt>iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att);
+function vbs(items){const ymd=dt=>dt&&dt>=iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att),attName=TPL.att?String(TPL.att.name||"attachment").replace(/[^a-zA-Z0-9._ -]/g,"_"):"x";
  return`' Pratham MIS Tracker: creates ${items.length} draft(s) in your Outlook Drafts folder
 Option Explicit
 Dim T,C,S,H,A,ol,fso,tmp,cnt,xa,na,sa
@@ -333,7 +333,7 @@ WScript.Quit
 End If
 On Error GoTo 0
 Set fso=CreateObject("Scripting.FileSystemObject")
-tmp=fso.GetSpecialFolder(2)&"\${TPL.att?TPL.att.name:"x"}"
+tmp=fso.GetSpecialFolder(2)&Chr(92)&"${attName}"
 ${need?ch("A",TPL.att.b64.replace(/^/,""))+`Set xa=CreateObject("MSXML2.DOMDocument")
 Set na=xa.createElement("b")
 na.dataType="bin.base64"
