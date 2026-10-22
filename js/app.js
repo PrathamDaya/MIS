@@ -307,7 +307,7 @@ function mailSet(id,returnToBulk=false){
  <label class="f">Checklist subject<input id="mx_subj" value="${esc(TPL.subj)}"></label>
  <label class="f">Checklist message<textarea id="mx_text" rows="7">${esc(TPL.text)}</textarea></label>
  ${K.map(([k,l,r])=>`<label class="f">${l}<textarea id="mx_${k}" rows="${r}">${esc(M[k])}</textarea></label>`).join("")}
- <p class="f mut" style="margin:0;font-size:12px">The checklist message and reminders are saved to this MIS account and used in the Outlook drafts. Placeholders: {Company}, {Contact}, {Analyst}, {Date}, {Amount}; the subject also supports {{C}}.</p></div>
+ <p class="f mut" style="margin:0;font-size:12px">The checklist message and reminders are saved in this MIS and used in the Outlook drafts. Placeholders: {Company}, {Contact}, {Analyst}, {Date}, {Amount}; the subject also supports {{C}}.</p></div>
  <div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save wording</button></div>`;
  dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();
   if(v==="x")return returnToBulk?bulkMail():mailDlg(id);
@@ -375,13 +375,13 @@ const payload=it=>{const L=[];if(it.some(i=>i.k==="m1")&&TPL.att)L.push("ATT|"+T
 function bulkMail(){
  const cs=S.bk.map(b=>co(b.id)).filter(Boolean),dlg=$("#dlg"),M=ML(),d0=(cs[0]&&cs[0].ml&&cs[0].ml.d)||{},nm=cs.filter(c=>!c.em).length;
  if(!cs.length)return toast("Select cases in the committee basket first");
- dlg.innerHTML='<div class="dh">Mails for '+cs.length+' committee case(s)</div><div class="db"><label class="f">CC (from your template)<input id="bc2" value="'+esc(M.cc)+'"></label>'+
+ dlg.innerHTML='<div class="dh">Mails for '+cs.length+' committee case(s)</div><div class="db"><label class="f">Default CC<input id="bc2" value="'+esc(M.cc)+'"></label>'+
  Object.entries(KN).map(([k,v])=>'<div class="f" style="display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center"><b>'+v+': date for all selected cases</b><input type="date" id="bd_'+k+'" value="'+((d0&&d0[k])||"")+'"></div>').join("")+
  '<label class="f">Create now<select id="bk2">'+Object.entries(KN).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'<option value="all" selected>All three mails for each company</option></select></label>'+
  '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; fill those in before creating drafts.</b> ':"")+'Click <b>Create Outlook drafts</b> to download one script for all selected mails. Open the script on this Windows computer to create the drafts in classic Outlook. Future dates are set to deliver at 10:00. Review each draft and press Send to activate scheduling. This script requires classic Outlook; the .eml ZIP is a manual fallback.</p></div>'+
- '<div class="df"><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml ZIP</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>';
+ '<div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml ZIP</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>';
  dlg.showModal();dlg.onclick=async e=>{
-  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true);
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true);if(v==="t")return mailSet(cs[0].id,true);
   const dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
   if(v==="s"){save();render();return toast("Dates set for all "+cs.length+" selected cases")}
   const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
