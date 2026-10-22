@@ -49,9 +49,9 @@ const cur=(c,b,k)=>b[k]==="-"?"":b[k]?fmt(b[k],k,gp(c[k])?.ce):auto(c[k],k);
 function cmt(){const items=S.bk.map(b=>({b,c:S.co.find(c=>c.id===b.id)})).filter(x=>x.c);
  const opt=(arr,v)=>`<option value="">Auto (rule)</option><option value="-" ${v==="-"?"selected":""}>None</option>${arr.map(g=>`<option ${v===g?"selected":""}>${g}</option>`)}`;
  return`<div class="panel"><h2>Generate documents for ${items.length} selected case${items.length===1?"":"s"}</h2><div class="gen">
- <button class="btn p" data-g="note" ${items.length?"":"disabled"}>Rating Notes (.docx)</button><button class="btn p" data-g="letter" ${items.length?"":"disabled"}>Rating Letters (.docx)</button><button class="btn p" data-g="pr" ${items.length?"":"disabled"}>Press Releases (.docx)</button>
- <button class="btn" id="cp" ${items.length?"":"disabled"}>Copy committee brief</button><button class="btn" id="csv" ${items.length?"":"disabled"}>Export as check sheet (.csv)</button><button class="btn" id="mdone" ${items.some(x=>!x.c.dn)?"":"disabled"}>Mark all done…</button><button class="btn" id="rt">Change Word templates</button><button class="btn" id="prt">Print / save as PDF</button><button class="btn p" id="bmail" ${items.length?"":"disabled"}>✉ Mails for these cases…</button><button class="btn p" id="held" ${items.length?"":"disabled"}>Committee held: start timers…</button></div>
- <div class="bar" style="margin:12px 0 0"><label><b>Committee date</b> <input type="date" data-cd value="${S.lcd||""}"></label><span class="mut">applies to all ${items.length} case(s) below</span></div><p class="mut" style="margin:10px 0 0;font-size:12px">You'll be asked to pick your Word template once per type (uses the same {{Company Name}}, {{Amount}}, {{Amount Words}}, {{Previous Rating LT}} … placeholders as your macro). Files are bundled into one zip named like “Rating Note_ Company.docx”.
+ <button class="btn p" id="genbundle" ${items.length?"":"disabled"}>Generate selected documents…</button>
+ <button class="btn" id="cp" ${items.length?"":"disabled"}>Copy committee brief</button><button class="btn" id="csv" ${items.length?"":"disabled"}>Export as check sheet (.csv)</button><button class="btn" id="mdone" ${items.some(x=>!x.c.dn)?"":"disabled"}>Mark all done…</button><button class="btn" id="rt">Update Word templates…</button><button class="btn" id="prt">Print / save as PDF</button><button class="btn p" id="bmail" ${items.length?"":"disabled"}>✉ Mails for these cases…</button><button class="btn p" id="held" ${items.length?"":"disabled"}>Committee held: start timers…</button></div>
+ <div class="bar" style="margin:12px 0 0"><label><b>Committee date</b> <input type="date" data-cd value="${S.lcd||""}"></label><span class="mut">applies to all ${items.length} case(s) below</span></div><p class="mut" style="margin:10px 0 0;font-size:12px">Select one or more document types above. The ZIP contains Company / INC _ MMMYY, with Rating Note in Rating Pack, Rating Letter and Press Release in Post Rating Process, and an empty Rating Process folder.
  <label style="margin-left:8px"><input type="checkbox" id="inc" ${S.inc?"checked":""}> Add “ISSUER NOT COOPERATING”</label></p></div>
  <div class="cases">${items.map(({b,c})=>{const cl=cur(c,b,"lt"),cs=cur(c,b,"st"),al=action(c.lt,cl,"lt"),as=action(c.st,cs,"st"),kc=x=>x==="Downgraded"?"bad":x==="Upgraded"?"ok":"nu";
  return`<div class="case"><div><h3>${esc(c.n)} <a href="${ilink(c.n)}" target="_blank" rel="noopener" class="tag ac" style="text-decoration:none" title="Open on Infomerics website">↗</a></h3><div class="mut">₹ ${c.a??"–"} Cr · ${esc(c.an)} · Last PR ${fd(c.lp)} · <b>Committee ${fd(c.cd||c.cdp)}</b></div></div>
@@ -75,25 +75,73 @@ async function out(name,data){try{const d=window.claude&&await claude.use("downl
  const a=document.createElement("a"),u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 const clean=s=>s.replace(/[\\\/:*?"<>|]/g,"_").trim().replace(/[. ]+$/,"");
 const PARTS=/^word\/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$/,PH=/\{\s*\{\s*([^{}]*?)\s*\}\s*\}/g;
-function fill(xml,vals){const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.getElementsByTagName("parsererror").length)throw new Error("unreadable template XML");
- for(const p of [...doc.getElementsByTagName("w:p")]){const ts=[...p.getElementsByTagName("w:t")].filter(t=>{let n=t.parentNode;while(n&&n.nodeName!=="w:p")n=n.parentNode;return n===p});if(!ts.length)continue;
-  const tx=ts.map(t=>t.textContent),full=tx.join("");if(!/\{\s*\{/.test(full))continue;const ln=tx.map(x=>x.length),st=[];let pos=0;ln.forEach(l=>{st.push(pos);pos+=l});
+function fill(xml,vals,literals){
+ const doc=new DOMParser().parseFromString(xml,"application/xml");if(doc.getElementsByTagName("parsererror").length)throw new Error("unreadable template XML");
+ for(const p of [...doc.getElementsByTagName("w:p")]){
+  const ts=[...p.getElementsByTagName("w:t")].filter(t=>{let n=t.parentNode;while(n&&n.nodeName!=="w:p")n=n.parentNode;return n===p});if(!ts.length)continue;
+  const tx=ts.map(t=>t.textContent),full=tx.join(""),ln=tx.map(x=>x.length),st=[];let pos=0;ln.forEach(l=>{st.push(pos);pos+=l});
   const ed=[];let m;PH.lastIndex=0;while((m=PH.exec(full))){const k=m[1].replace(/\s+/g," ").trim().toLowerCase();if(k in vals)ed.push([m.index,m.index+m[0].length,vals[k]])}
-  for(const[a,b,v]of ed.reverse()){let first=true;ts.forEach((t,i)=>{const x=st[i],y=x+ln[i];if(y<=a||x>=b)return;const lo=Math.max(a,x)-x,hi=Math.min(b,y)-x;tx[i]=tx[i].slice(0,lo)+(first?v:"")+tx[i].slice(hi);first=false})}
-  if(ed.length)ts.forEach((t,i)=>{t.textContent=tx[i];t.setAttribute("xml:space","preserve")})}
- const o=new XMLSerializer().serializeToString(doc);return/^<\?xml/.test(o)?o:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+o}
-const tpl={},pick=(acc=".docx")=>new Promise(r=>{const f=$("#fi");f.accept=acc;f.value="";f.onchange=()=>r(f.files[0]);f.click()});
-async function gen(kind){const L={note:"Rating Note",letter:"Rating Letter",pr:"Press Release"}[kind];
- try{if(!tpl[kind]){toast("Choose your “"+L+"” Word template");const f=await pick();if(!f)return;tpl[kind]=await f.arrayBuffer()}
- const fl=[];
- for(const b of S.bk){const c=S.co.find(x=>x.id===b.id);if(!c)continue;const cl=cur(c,b,"lt"),cs=cur(c,b,"st");
-  const v={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st")};
-  const t=new PizZip(tpl[kind]);t.file(PARTS).forEach(f=>t.file(f.name,fill(f.asText(),v)));
-  fl.push([`${L}_ ${clean(c.n)}.docx`,t.generate({type:"uint8array",compression:"DEFLATE"})])}
- if(fl.length===1)await out(fl[0][0],fl[0][1]);else{const z=new PizZip();fl.forEach(([n,d])=>z.file(n,d));await out(`${L}s.zip`,z.generate({type:"uint8array"}))}
- toast(`${fl.length} ${L}(s) ready`)}
- catch(e){delete tpl[kind];toast("Couldn't use that template: "+e.message)}}
-/* ---------- done date ---------- */
+  Object.entries(literals||{}).forEach(([from,to])=>{if(!from)return;let at=0;while((at=full.indexOf(from,at))>=0){ed.push([at,at+from.length,String(to)]);at+=from.length}});
+  ed.sort((a,b)=>b[0]-a[0]);
+  for(const[a,b,v]of ed){let first=true;ts.forEach((t,i)=>{const x=st[i],y=x+ln[i];if(y<=a||x>=b)return;const lo=Math.max(a,x)-x,hi=Math.min(b,y)-x;tx[i]=tx[i].slice(0,lo)+(first?v:"")+tx[i].slice(hi);first=false})}
+  if(ed.length)ts.forEach((t,i)=>{t.textContent=tx[i];t.setAttribute("xml:space","preserve")})
+ }
+ const o=new XMLSerializer().serializeToString(doc);return/^<\?xml/.test(o)?o:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+o
+}
+const pick=(acc=".docx")=>new Promise(r=>{const f=$("#fi");f.accept=acc;f.value="";f.onchange=()=>r(f.files[0]);f.click()});
+const docKinds=[["note","Rating Note"],["letter","Rating Letter"],["pr","Press Release"]];
+function bytesB64(buf){const a=new Uint8Array(buf);let s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,Math.min(i+0x8000,a.length)));return btoa(s)}
+function b64Bytes(s){const x=atob(s),a=new Uint8Array(x.length);for(let i=0;i<x.length;i++)a[i]=x.charCodeAt(i);return a}
+function templateDlg(){
+ const dlg=$("#dlg"),saved=S.docTemplates||{};
+ dlg.innerHTML='<div class="dh">Update Word templates</div><div class="db"><p class="f mut" style="margin:0 0 10px">Choose any template files you want to add or replace. The saved versions are shared with signed-in MIS users through your database.</p>'+
+ docKinds.map(([k,n])=>'<label class="f">'+n+' · '+(saved[k]?'Saved':'Not uploaded')+'<input type="file" id="tpl-'+k+'" accept=".docx"></label>').join("")+
+ '<p class="f mut" style="margin:0;font-size:12px">Only Word .docx files are accepted. Choosing no file leaves that template unchanged.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Save selected templates</button></div>';
+ dlg.showModal();dlg.onclick=async e=>{
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
+  const updates={};
+  try{
+   for(const[k,n]of docKinds){const f=$("#tpl-"+k).files[0];if(!f)continue;if(f.size>10*1024*1024)throw new Error(n+" is over the 10 MB limit");
+    const buf=await f.arrayBuffer(),z=new PizZip(buf);if(!z.file("word/document.xml"))throw new Error(f.name+" is not a readable Word document");updates[k]=bytesB64(buf)}
+   const keys=Object.keys(updates);if(!keys.length)return toast("Choose at least one .docx file");
+   S.docTemplates=Object.assign({},S.docTemplates||{},updates);save();dlg.close();render();
+   toast(keys.length+" template(s) saved"+(XH&&XH.db?"; syncing to the shared database":" on this device; sign in to share them"));
+  }catch(err){toast("Could not save templates: "+err.message)}
+ }
+}
+function generateDlg(){
+ const dlg=$("#dlg");
+ dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db"><p class="f mut" style="margin:0 0 10px">Choose one or more document types. All selected cases will be combined into one ZIP with a folder for each company and committee month.</p>'+
+ docKinds.map(([k,n])=>'<label class="f"><span><input type="checkbox" id="gen-'+k+'" checked> '+n+' · '+((S.docTemplates||{})[k]?'template saved':'template needed')+'</span></label>').join("")+
+ '<p class="f mut" style="margin:0;font-size:12px">Each company needs a funding basis in its details (for example, Fund Based or Non-Fund Based). The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
+ dlg.showModal();dlg.onclick=async e=>{
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
+  const selected=docKinds.filter(([k])=>$("#gen-"+k).checked);if(!selected.length)return toast("Select at least one document type");
+  const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);if(!cases.length)return toast("Select at least one case first");
+  const missing=selected.filter(([k])=>!(S.docTemplates||{})[k]);if(missing.length){dlg.close();return toast("Upload the "+missing.map(x=>x[1]).join(", ")+" template(s) with Update Word templates first")}
+  const noBasis=cases.find(x=>!String(x.c.basis||"").trim());if(noBasis){dlg.close();return toast("Add a funding basis to "+noBasis.c.n+" in its company details, then generate")}
+  try{
+   const z=new PizZip();let count=0;
+   for(const item of cases){
+    const c=item.c,ds=c.cd||c.cdp||S.lcd||iso(TODAY),dt=D0(ds),month=dt.toLocaleDateString("en-US",{month:"short"}).toUpperCase()+String(dt.getFullYear()).slice(-2);
+    const root=clean(c.n)+"/INC _ "+month;
+    z.folder(root+"/Post Rating Process");z.folder(root+"/Rating Pack");z.folder(root+"/Rating Process");
+    const dateText=dt.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
+    const cl=cur(c,item.b,"lt"),cs=cur(c,item.b,"st");
+    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"company short name":c.short||"","company acronym":c.short||"","short name":c.short||"","formerly known as":c.former||"","former name":c.former||"","funding basis":c.basis||""};
+    const literals={"April 07, 2025":dateText,"(GMPL)":c.short?"("+c.short+")":"","[Fund/Non-Fund based]":c.basis||"","[Formerly known as ...]":c.former?"(Formerly known as "+c.former+")":""};
+    for(const[k,label]of selected){
+     const template=new PizZip(b64Bytes(S.docTemplates[k]));
+     template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),vals,literals)));
+     const typeFolder=k==="note"?"Rating Pack":"Post Rating Process",title=label==="Press Release"?"Press Release":label;
+     z.folder(root+"/"+typeFolder).file(title+"_"+clean(c.n)+".docx",template.generate({type:"uint8array",compression:"DEFLATE"}));count++
+    }
+   }
+   await out("MIS_Rating_Bundle_"+iso(TODAY).replace(/-/g,"")+".zip",z.generate({type:"uint8array",compression:"DEFLATE"}));dlg.close();toast(count+" document(s) saved in the company/month folder bundle")
+  }catch(err){toast("Could not generate documents: "+err.message)}
+ }
+}
+
 const undone=c=>{c.dn=false;delete c.dd;if("lp0"in c){c.lp=c.lp0;delete c.lp0}if(c.cdp&&!c.cd&&(!c.lp||c.lp<c.cdp)){c.cd=c.cdp;delete c.cdp}};
 function doneDlg(ids){const dlg=$("#dlg"),cs=ids.map(i=>S.co.find(c=>c.id===i)).filter(Boolean);if(!cs.length)return;
  const oth=S.bk.map(b=>S.co.find(c=>c.id===b.id)).filter(c=>c&&!c.dn&&!ids.includes(c.id));
@@ -103,7 +151,7 @@ function doneDlg(ids){const dlg=$("#dlg"),cs=ids.map(i=>S.co.find(c=>c.id===i)).
  dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();const d=$("#dd").value;if(!d){toast("Pick a date");return}
   const all=[...cs,...($("#dall")?.checked?oth:[])],lp=$("#dlp").checked;all.forEach(c=>{if(c.dn)undone(c);c.dn=true;c.dd=d;if(lp){c.lp0=c.lp;c.lp=d}});S.ld=d;fin();toast(all.length+" case(s) marked done on "+fd(d))}}
 /* ---------- dialogs ---------- */
-const FLD=[["n","Company name","f"],["a","Amount (₹ Cr)","","number"],["an","Previous analyst"],["gh","Group head"],["lp","Last PR date","","date"],["cd","Committee date","","date"],["rlDate","Rating letter date","","date"],["fu","Follow-up date","","date"],["p","Contact person"],["ph","Number"],["em","Email","f"]];
+const FLD=[["n","Company name","f"],["short","Short name / acronym"],["former","Former name (optional)"],["basis","Funding basis (e.g. Fund Based)"],["a","Amount (₹ Cr)","","number"],["an","Previous analyst"],["gh","Group head"],["lp","Last PR date","","date"],["cd","Committee date","","date"],["rlDate","Rating letter date","","date"],["fu","Follow-up date","","date"],["p","Contact person"],["ph","Number"],["em","Email","f"]];
 const mk=(g,kind,ce,neg,inc)=>g?`IVR ${g}${ce?"(CE)":""}${kind==="lt"&&g!=="D"&&neg?" /Negative":""}${inc?"; ISSUER NOT COOPERATING":""}`:"";
 const gOpt=(arr,v)=>`<option value="">— none —</option>${arr.concat(v&&!arr.includes(v)?[v]:[]).map(x=>`<option ${x===v?"selected":""}>${x}</option>`).join("")}`;
 function rdd(c){const a=gp(c.lt),b=gp(c.st),inc=c.lt||c.st?/INC|ISSUER/i.test((c.lt||"")+(c.st||"")):true;
@@ -113,7 +161,7 @@ function rdd(c){const a=gp(c.lt),b=gp(c.st),inc=c.lt||c.st?/INC|ISSUER/i.test((c
 const uniq=k=>[...new Set(S.co.map(c=>String(c[k]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
 function selBox(k,l,cur){cur=String(cur||"").trim();return`<label>${l}<select name="${k}" data-new="${k}"><option value="">— select —</option>${uniq(k).map(x=>`<option ${x===cur?"selected":""}>${esc(x)}</option>`).join("")}<option value="__new">+ Add new…</option></select><input name="${k}2" placeholder="Type new name" hidden></label>`}
 $("#dlg").addEventListener("change",e=>{const t=e.target;if(t.name==="lg"){const o=$("#dlg").querySelector("[name=lo]");if(o)o.value=t.value==="D"?"0":"1"}if(t.dataset&&t.dataset.pd){const c=co(+$("#dlg").dataset.id),sy=S.bk.some(b=>b.id===c.id)&&S.bk.length>1,L2=sy?S.bk.map(b=>co(b.id)):[c];L2.forEach(x=>{x.ml=x.ml||{};x.ml.d=Object.assign({},x.ml.d,{[t.dataset.pd]:t.value})});save();render();if(sy)toast("Date applied to all "+L2.length+" committee cases");return}if(t.dataset&&t.dataset.new){const i=$("#dlg").querySelector(`[name=${t.dataset.new}2]`);i.hidden=t.value!=="__new";if(!i.hidden)i.focus()}});
-function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",a:"",an:"",gh:"",lp:"",cd:"",rlDate:"",lt:"",st:"",p:"",ph:"",em:"",ncd:V==="ncd"};
+function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",short:"",former:"",basis:"",a:"",an:"",gh:"",lp:"",cd:"",rlDate:"",lt:"",st:"",p:"",ph:"",em:"",ncd:V==="ncd"};
  dlg.innerHTML=`<div class="dh">${n?"Add company to MIS":esc(c.n)}</div><div class="db">${FLD.map(([k,l,f,t])=>k==="an"||k==="gh"?selBox(k,l,c[k]):`<label class="${f}">${l}<input name="${k}" type="${t||"text"}" step="any" value="${esc(c[k]??"")}" ></label>`).join("")}${rdd(c)}
  <label><span>Withdrawal basis<select name="withdrawType"><option value="" ${!c.withdrawType?"selected":""}>No withdrawal</option><option value="NOC" ${c.withdrawType==="NOC"?"selected":""}>NOC-based</option><option value="NDC" ${c.withdrawType==="NDC"?"selected":""}>NDC-based</option></select></span></label>
  <label><span><input type="checkbox" name="ncd" ${c.ncd?"checked":""}> NCD case</span></label><label class="f"><span><input type="checkbox" name="tr" ${c.tr?"checked":""}> Transferred (hide from active list)</span></label>
@@ -126,7 +174,7 @@ function form(c){const dlg=$("#dlg"),n=!c;c=c||{n:"",a:"",an:"",gh:"",lp:"",cd:"
   if(!n&&nm.toLowerCase()!==c.n.toLowerCase()&&S.co.some(x=>x.id!==c.id&&x.n.toLowerCase()===nm.toLowerCase())){toast("Another company already has that name");return}
   const oldLp=c.lp||"",newLp=g("lp").value,oldHistory=Array.isArray(c.prHistory)?c.prHistory.slice():[];
   if(newLp&&newLp!==oldLp)oldHistory.push({date:newLp,kind:"Last PR date updated",at:new Date().toISOString()});
-  const o={n:nm,a:g("a").value===""?null:+g("a").value,an:sv("an"),gh:sv("gh"),lp:newLp,cd:g("cd").value,rlDate:g("rlDate").value,sd:g("rlDate").value,prHistory:oldHistory,withdrawType:g("withdrawType").value,lt:mk(g("lg").value,"lt",g("lce").checked,g("lo").value==="1",g("inc").checked),st:mk(g("sg").value,"st",g("sce").checked,false,g("inc").checked),p:g("p").value.trim(),ph:g("ph").value.trim(),em:g("em").value.trim(),ncd:g("ncd").checked,tr:g("tr").checked,fu:g("fu").value,nt:g("nt").value.trim(),w:g("rs").value==="1"||!!g("withdrawType").value};
+  const o={n:nm,short:g("short").value.trim(),former:g("former").value.trim(),basis:g("basis").value.trim(),a:g("a").value===""?null:+g("a").value,an:sv("an"),gh:sv("gh"),lp:newLp,cd:g("cd").value,rlDate:g("rlDate").value,sd:g("rlDate").value,prHistory:oldHistory,withdrawType:g("withdrawType").value,lt:mk(g("lg").value,"lt",g("lce").checked,g("lo").value==="1",g("inc").checked),st:mk(g("sg").value,"st",g("sce").checked,false,g("inc").checked),p:g("p").value.trim(),ph:g("ph").value.trim(),em:g("em").value.trim(),ncd:g("ncd").checked,tr:g("tr").checked,fu:g("fu").value,nt:g("nt").value.trim(),w:g("rs").value==="1"||!!g("withdrawType").value};
   if(!n&&nm!==c.n)o.xn=(c.xn&&key(c.xn)===key(nm))?undefined:(c.xn||c.n);
   if(o.withdrawType==="NOC"){o.w=true;o.withdrawStatus="Withdrawn after rating issued";}
   if(o.withdrawType==="NDC"){o.w=true;o.a=0;o.withdrawStatus="Withdrawn with amount reduced to ₹0.00 Cr";}
@@ -547,8 +595,8 @@ app.addEventListener("click",e=>{const t=e.target,g=k=>t.closest(`[${k}]`)?.getA
  if(t.dataset.b){const id=+t.dataset.b,L=list();let ids=[id];if(e.shiftKey&&F.last!=null){const a=L.findIndex(c=>c.id===F.last),b=L.findIndex(c=>c.id===id);if(a>=0&&b>=0)ids=L.slice(Math.min(a,b),Math.max(a,b)+1).map(c=>c.id)}F.last=id;setB(ids,t.checked);return}
  if(t.id==="paste")return pasteDlg();if(t.id==="zdue")return zipDue();
  if(g("data-f")){F.f=g("data-f");render()}else if(g("data-e")){form(S.co.find(c=>c.id==g("data-e")))}
- else if(t.id==="more"){F.n+=150;render()}else if(g("data-g"))gen(g("data-g"));else if(g("data-rm")){S.bk=S.bk.filter(b=>b.id!=g("data-rm"));save();render()}
- else if(t.id==="bnow"){out("mis-backup.json",JSON.stringify(S));S.lb=iso(TODAY);save();render();toast("Backup downloaded")}else if(t.id==="bmail")bulkMail();else if(t.id==="prt")window.print();else if(t.id==="mdone")doneDlg(S.bk.map(b=>b.id).filter(id=>!S.co.find(c=>c.id===id)?.dn));else if(t.id==="rt"){for(const k in tpl)delete tpl[k];toast("Next time you generate, you can pick fresh templates")}else if(t.id==="cp"){const s=S.bk.map(b=>{const c=S.co.find(x=>x.id===b.id),cl=cur(c,b,"lt"),cs=cur(c,b,"st");return"• "+say(c,cl,cs,action(c.lt,cl,"lt"),action(c.st,cs,"st"))}).join("\n");navigator.clipboard?.writeText(s).then(()=>toast("Brief copied"),()=>toast("Copy blocked by browser"))}
+ else if(t.id==="more"){F.n+=150;render()}else if(t.id==="genbundle")generateDlg();else if(g("data-rm")){S.bk=S.bk.filter(b=>b.id!=g("data-rm"));save();render()}
+ else if(t.id==="bnow"){out("mis-backup.json",JSON.stringify(S));S.lb=iso(TODAY);save();render();toast("Backup downloaded")}else if(t.id==="bmail")bulkMail();else if(t.id==="prt")window.print();else if(t.id==="mdone")doneDlg(S.bk.map(b=>b.id).filter(id=>!S.co.find(c=>c.id===id)?.dn));else if(t.id==="rt")templateDlg()else if(t.id==="cp"){const s=S.bk.map(b=>{const c=S.co.find(x=>x.id===b.id),cl=cur(c,b,"lt"),cs=cur(c,b,"st");return"• "+say(c,cl,cs,action(c.lt,cl,"lt"),action(c.st,cs,"st"))}).join("\n");navigator.clipboard?.writeText(s).then(()=>toast("Brief copied"),()=>toast("Copy blocked by browser"))}
  else if(t.id==="csv"){out("check.csv",csv(["Company Name","Amount","Previous Rating LT","Previous Rating ST","Current Rating LT","Current Rating ST","Action LT","Action ST"],S.bk.map(b=>{const c=S.co.find(x=>x.id===b.id),cl=cur(c,b,"lt"),cs=cur(c,b,"st");return[c.n,c.a,c.lt,c.st,cl,cs,action(c.lt,cl,"lt"),action(c.st,cs,"st")]})))}});
 app.addEventListener("change",e=>{const t=e.target;
  if(t.id==="sa")setB(list().map(c=>c.id),t.checked);else if(t.hasAttribute("data-cd"))applyCd(t.value);else if(t.dataset.dk)syncSet(t.dataset.dk,+t.dataset.id,t.value);else if(t.dataset.ds){F.ds=F.ds||new Set();t.checked?F.ds.add(+t.dataset.ds):F.ds.delete(+t.dataset.ds);render()}else if(t.id==="dsa"){F.ds=new Set(t.checked?S.co.filter(pend).map(c=>c.id):[]);render()}else if(t.id==="dsy"){S.dsync=t.checked;save()}else if(t.id==="dcm"){F.dc=t.checked;render()}else if(t.id==="cdf"){F.cdf=t.value;F.n=120;render()}
