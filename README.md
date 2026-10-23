@@ -4,7 +4,7 @@ Static site (HTML + CSS + JS). Hosted on GitHub Pages. **No company data is stor
 Data is stored in a login-protected Supabase database; every device that signs in sees the same cases.
 
 ## Update the website
-Upload the files in this folder (index.html, css/, js/, assets/, .nojekyll) to the repo root and commit.
+Upload the files in this folder (index.html, 404.html, css/, js/, assets/, .nojekyll) to the repo root and commit.
 Settings -> Pages -> Deploy from branch -> main / (root).
 
 ## Connect the database (once per device)

@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap");
 :root{--bg:#f5f6f8;--card:#fff;--ink:#14181f;--mut:#667085;--line:#e4e7ec;--acc:#2b50e6;--accs:#e8edff;--bad:#c4321c;--bads:#fdeceb;--warn:#a15c07;--warns:#fff3dc;--ok:#157a4a;--oks:#e5f6ed;--sh:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.05);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1116;--card:#171b22;--ink:#e8eaee;--mut:#8f98a8;--line:#272d38;--acc:#7b97ff;--accs:#1e2a55;--bad:#ff8a78;--bads:#3a1c19;--warn:#f2b45a;--warns:#38290d;--ok:#5fd39b;--oks:#10301f;--sh:none}}
 :root[data-theme=dark]{--bg:#0e1116;--card:#171b22;--ink:#e8eaee;--mut:#8f98a8;--line:#272d38;--acc:#7b97ff;--accs:#1e2a55;--bad:#ff8a78;--bads:#3a1c19;--warn:#f2b45a;--warns:#38290d;--ok:#5fd39b;--oks:#10301f;--sh:none}
@@ -125,7 +124,7 @@ nav button.on{animation:tabActivate .28s var(--ease)}
 @media(max-width:1100px){.case{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:12px}.case>div:nth-child(3){grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:8px}}
 @media(max-width:760px){.case{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px}.case>div:nth-child(3){grid-column:auto;grid-template-columns:minmax(0,1fr);align-items:stretch}.case .pair{grid-template-columns:22px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){#app>.view-enter,nav button.on{animation:none}}
-.date-filter{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--mut);font-size:12px;font-weight:650;white-space:nowrap}.date-filter input{min-height:31px;padding:4px 7px}.deadline-filters{display:flex;align-items:center;gap:10px;margin:14px 0 8px}.deadline-filters input[type=search]{flex:1;min-width:220px}.deadline-hint{margin:0 0 8px;font-size:11px}.tw.deadline-wrap{width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--sh)}.deadline-wrap table.deadline-table{width:100%;min-width:1180px;table-layout:fixed}.deadline-wrap th,.deadline-wrap td{white-space:nowrap}.deadline-wrap th:nth-child(1),.deadline-wrap td:nth-child(1){width:46px}.deadline-wrap th:nth-child(2),.deadline-wrap td:nth-child(2){width:250px}.deadline-wrap th:nth-child(3),.deadline-wrap td:nth-child(3){width:112px}.deadline-wrap th:nth-child(4),.deadline-wrap td:nth-child(4){width:100px}.deadline-wrap th:nth-child(5),.deadline-wrap td:nth-child(5){width:164px}.deadline-wrap th:nth-child(6),.deadline-wrap td:nth-child(6){width:166px}.deadline-wrap th:nth-child(7),.deadline-wrap td:nth-child(7){width:160px}.deadline-wrap th:nth-child(8),.deadline-wrap td:nth-child(8){width:166px}.deadline-wrap td:nth-child(2){white-space:normal;overflow-wrap:anywhere}.deadline-wrap td input[type=date]{display:block;width:100%!important;max-width:100%;min-width:0!important;padding:6px 7px;font-size:12px}.deadline-wrap td .btn{display:block;width:100%;min-width:0;margin:6px 0 0;padding:5px 8px;white-space:nowrap}.btn,input,select,textarea,.st{transition:background-color .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease),transform .2s var(--ease)}.st:hover{transform:translateY(-2px);box-shadow:var(--sh)}html{scroll-behavior:smooth}:root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}@media(max-width:760px){.deadline-filters{align-items:stretch;flex-direction:column}.deadline-filters input[type=search],.deadline-filters .date-filter{width:100%;min-width:0}.deadline-filters .date-filter{justify-content:space-between}.deadline-filters .date-filter input{flex:1;max-width:190px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,input,select,textarea,.st{transition:none!important}.st:hover{transform:none}}body{font-family:"Josefin Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0}button,input,select,textarea{font-family:inherit}
+.date-filter{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--mut);font-size:12px;font-weight:650;white-space:nowrap}.date-filter input{min-height:31px;padding:4px 7px}.deadline-filters{display:flex;align-items:center;gap:10px;margin:14px 0 8px}.deadline-filters input[type=search]{flex:1;min-width:220px}.deadline-hint{margin:0 0 8px;font-size:11px}.tw.deadline-wrap{width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:var(--sh)}.deadline-wrap table.deadline-table{width:100%;min-width:1180px;table-layout:fixed}.deadline-wrap th,.deadline-wrap td{white-space:nowrap}.deadline-wrap th:nth-child(1),.deadline-wrap td:nth-child(1){width:46px}.deadline-wrap th:nth-child(2),.deadline-wrap td:nth-child(2){width:250px}.deadline-wrap th:nth-child(3),.deadline-wrap td:nth-child(3){width:112px}.deadline-wrap th:nth-child(4),.deadline-wrap td:nth-child(4){width:100px}.deadline-wrap th:nth-child(5),.deadline-wrap td:nth-child(5){width:164px}.deadline-wrap th:nth-child(6),.deadline-wrap td:nth-child(6){width:166px}.deadline-wrap th:nth-child(7),.deadline-wrap td:nth-child(7){width:160px}.deadline-wrap th:nth-child(8),.deadline-wrap td:nth-child(8){width:166px}.deadline-wrap td:nth-child(2){white-space:normal;overflow-wrap:anywhere}.deadline-wrap td input[type=date]{display:block;width:100%!important;max-width:100%;min-width:0!important;padding:6px 7px;font-size:12px}.deadline-wrap td .btn{display:block;width:100%;min-width:0;margin:6px 0 0;padding:5px 8px;white-space:nowrap}.btn,input,select,textarea,.st{transition:background-color .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease),transform .2s var(--ease)}.st:hover{transform:translateY(-2px);box-shadow:var(--sh)}html{scroll-behavior:smooth}:root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}@media(max-width:760px){.deadline-filters{align-items:stretch;flex-direction:column}.deadline-filters input[type=search],.deadline-filters .date-filter{width:100%;min-width:0}.deadline-filters .date-filter{justify-content:space-between}.deadline-filters .date-filter input{flex:1;max-width:190px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,input,select,textarea,.st{transition:none!important}.st:hover{transform:none}}body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em}button,input,select,textarea{font-family:inherit}
 
 
 /* Mobile layout: keep the MIS table readable and swipeable instead of squeezing columns. */
@@ -189,4 +188,142 @@ nav button.on{animation:tabActivate .28s var(--ease)}
   .st b{font-size:21px}
   .stats{gap:7px}
   .tw:not(.deadline-wrap) table{min-width:1240px}
+}
+
+
+/* Responsive navigation, readable cards, and no sideways page scrolling. */
+.brand-link{color:inherit;text-decoration:none}
+.brand-link:hover{color:var(--acc)}
+.mobile-nav-toggle{display:none}
+.site-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:1240px;margin:0 auto;padding:18px 28px calc(20px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+.footer-links{display:flex;gap:16px;flex-wrap:wrap}
+.footer-links a{color:var(--acc);text-decoration:none}
+.footer-links a:hover{text-decoration:underline}
+#toast[data-state=error]{background:var(--bad);color:var(--card)}
+.deadline-hint{font-size:12px}
+
+@media(max-width:760px){
+  html,body{width:100%;max-width:100%;overflow-x:clip}
+  body{font-size:16px}
+  header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-rows:auto auto auto;align-items:center;gap:8px;padding:9px 12px}
+  header h1{grid-column:1;grid-row:1;min-width:0;font-size:16px}
+  header .mobile-nav-toggle{display:inline-flex;grid-column:2;grid-row:1;align-items:center;justify-content:center;min-height:42px;padding:8px 13px}
+  header .more{grid-column:3;grid-row:1;justify-self:end}
+  header .sp{display:none}
+  header #add{grid-column:1/-1;grid-row:2;width:100%;min-height:42px;white-space:nowrap}
+  header #primary-nav{display:none;grid-column:1/-1;grid-row:3;width:100%;max-width:100%;flex-wrap:wrap;overflow:visible;gap:6px;padding:6px;border-radius:14px}
+  header.nav-open #primary-nav{display:flex}
+  header #primary-nav button{flex:1 1 30%;min-width:96px;min-height:42px;padding:8px 10px;font-size:14px}
+  header .menu{right:0;max-width:calc(100vw - 20px)}
+  main{width:100%;max-width:100%;min-width:0;padding:16px 12px calc(130px + env(safe-area-inset-bottom,0px))}
+  main>*{min-width:0;max-width:100%}
+  .ttl h2{font-size:28px;line-height:1.12}
+  .ttl p{font-size:15px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .st{min-width:0;padding:12px}
+  .st b{font-size:23px}
+  .st span{font-size:12px}
+  .bar{min-width:0;gap:8px}
+  .bar input[type=search],.bar select{min-width:0;max-width:100%;min-height:42px}
+  .bar input[type=search]{flex:1 1 100%;width:100%}
+  button,input,select,textarea{max-width:100%;font-size:16px}
+  .btn,.more summary{min-height:42px}
+  .tw:not(.deadline-wrap){width:100%;max-width:100%;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none}
+  .tw:not(.deadline-wrap)::before{content:none}
+  .tw:not(.deadline-wrap) table{display:block;width:100%;min-width:0;table-layout:auto}
+  .tw:not(.deadline-wrap) thead{display:block;margin:0 0 12px}
+  .tw:not(.deadline-wrap) thead tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+  .tw:not(.deadline-wrap) th{display:flex;flex-direction:column;justify-content:flex-start;gap:4px;min-width:0;padding:4px;border:0;background:transparent;font-size:11px;line-height:1.3;text-align:left;white-space:normal}
+  .tw:not(.deadline-wrap) th:first-child{align-items:flex-start}
+  .tw:not(.deadline-wrap) th .col-filter{width:100%;min-width:0;max-width:100%;min-height:42px;margin:2px 0 0;padding:7px 8px;font-size:16px;text-transform:none}
+  .tw:not(.deadline-wrap) th input[type=date].col-filter,.tw:not(.deadline-wrap) th select.col-filter{width:100%;min-width:0;max-width:100%}
+  .tw:not(.deadline-wrap) tbody{display:grid;gap:10px}
+  .tw:not(.deadline-wrap) tbody tr.r{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--sh)}
+  .tw:not(.deadline-wrap) tbody tr td{display:flex;align-items:center;gap:8px;grid-column:auto;min-width:0;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+  .tw:not(.deadline-wrap) tbody tr td::before{flex:0 0 68px;color:var(--mut);font-size:10px;font-weight:650;line-height:1.2;letter-spacing:.025em;text-transform:uppercase}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(1)::before{content:"Select"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(2)::before{content:"PR done"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(3){grid-column:1/-1;align-items:flex-start;min-width:0;font-size:14px;font-weight:600}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(3)::before{content:"Company"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(4)::before{content:"₹ Cr"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(5)::before{content:"Analyst"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(6)::before{content:"Last PR"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(7)::before{content:"PR status"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(8)::before{content:"LT"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(9)::before{content:"ST"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(10){grid-column:1/-1}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(10)::before{content:"Committee"}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(11){grid-column:1/-1}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(11)::before{content:"Mail"}
+  .tw:not(.deadline-wrap) tbody tr td[colspan]{display:block;grid-column:1/-1;padding:20px;text-align:center}
+  .tw:not(.deadline-wrap) tbody tr td[colspan]::before{content:none}
+  .tw:not(.deadline-wrap) td input[type=date]{width:100%;min-width:0;min-height:40px;padding:6px;font-size:16px}
+  .tw:not(.deadline-wrap) td input[type=checkbox],.deadline-wrap td input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
+  .tw:not(.deadline-wrap) .btn{min-height:38px;padding:7px 10px;font-size:13px}
+  .deadline-hint{margin:0 0 8px}
+  .tw.deadline-wrap{width:100%;max-width:100%;overflow:visible;border:0;border-radius:0;box-shadow:none;background:transparent}
+  .deadline-wrap table.deadline-table{display:block;width:100%;min-width:0;table-layout:auto}
+  .deadline-wrap .deadline-table thead{display:none}
+  .deadline-wrap .deadline-table tbody{display:grid;gap:10px}
+  .deadline-wrap .deadline-table tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--sh)}
+  .deadline-wrap .deadline-table td{display:flex;align-items:center;gap:8px;grid-column:auto;min-width:0;width:auto;padding:10px;border-bottom:1px solid var(--line);font-size:13px;line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+  .deadline-wrap .deadline-table td::before{flex:0 0 84px;color:var(--mut);font-size:10px;font-weight:650;line-height:1.2;letter-spacing:.025em;text-transform:uppercase}
+  .deadline-wrap .deadline-table td:nth-child(1)::before{content:"Select"}
+  .deadline-wrap .deadline-table td:nth-child(2){grid-column:1/-1;align-items:flex-start;font-size:14px;font-weight:650}
+  .deadline-wrap .deadline-table td:nth-child(2)::before{content:"Company"}
+  .deadline-wrap .deadline-table td:nth-child(3)::before{content:"Committee"}
+  .deadline-wrap .deadline-table td:nth-child(4)::before{content:"Last PR"}
+  .deadline-wrap .deadline-table td:nth-child(5),.deadline-wrap .deadline-table td:nth-child(6),.deadline-wrap .deadline-table td:nth-child(7),.deadline-wrap .deadline-table td:nth-child(8){grid-column:1/-1}
+  .deadline-wrap .deadline-table td:nth-child(5)::before{content:"Client RL & PR due"}
+  .deadline-wrap .deadline-table td:nth-child(6)::before{content:"Sent on"}
+  .deadline-wrap .deadline-table td:nth-child(7)::before{content:"Website PR due"}
+  .deadline-wrap .deadline-table td:nth-child(8)::before{content:"Uploaded on"}
+  .deadline-wrap .deadline-table td[colspan]{display:block;grid-column:1/-1;padding:20px;text-align:center}
+  .deadline-wrap .deadline-table td[colspan]::before{content:none}
+  .deadline-wrap td input[type=date]{flex:1;min-width:0!important;width:auto!important;min-height:40px;font-size:16px}
+  .deadline-wrap td .btn{display:inline-flex;width:auto;min-height:40px;margin:0;padding:7px 10px;white-space:nowrap}
+  .deadline-wrap .deadline-table td:nth-child(5),.deadline-wrap .deadline-table td:nth-child(7){align-items:flex-start;flex-wrap:wrap}
+  dialog{width:calc(100vw - 20px);max-width:640px;max-height:calc(100dvh - 24px);margin:auto}
+  .dh{padding:14px 16px;font-size:18px}
+  .db{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 16px;max-height:calc(100dvh - 150px)}
+  .df{padding:12px 16px;flex-wrap:wrap}
+  .df .btn{min-height:42px}
+  .case{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px}
+  .case>div:nth-child(3){grid-column:auto;grid-template-columns:minmax(0,1fr);align-items:stretch}
+  .case .pair{grid-template-columns:24px minmax(0,1fr)}
+  .g2{grid-template-columns:minmax(0,1fr)}
+  .deadline-filters{align-items:stretch;flex-direction:column}
+  .deadline-filters input[type=search],.deadline-filters .date-filter{width:100%;min-width:0;min-height:42px}
+  .deadline-filters .date-filter{justify-content:space-between}
+  .deadline-filters .date-filter input{flex:1;max-width:60%;min-height:40px;font-size:16px}
+  #sel{width:calc(100vw - 20px);max-width:calc(100vw - 20px);bottom:calc(10px + env(safe-area-inset-bottom,0px));border-radius:18px}
+  #sel input{min-width:0;max-width:36vw;font-size:16px}
+  .panel{padding:15px}
+  .site-footer{flex-direction:column;align-items:flex-start;padding:18px 12px calc(20px + env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:380px){
+  header{padding-left:8px;padding-right:8px}
+  header #primary-nav button{min-width:0;flex:1 1 44%}
+  main{padding-left:8px;padding-right:8px}
+  .tw:not(.deadline-wrap) thead tr{gap:6px;padding:9px}
+  .tw:not(.deadline-wrap) tbody tr td{padding:8px}
+  .tw:not(.deadline-wrap) tbody tr td::before{flex-basis:60px}
+}
+@media(min-width:761px){
+  .deadline-wrap{overflow:visible}
+  .deadline-wrap table.deadline-table{width:100%;min-width:0;table-layout:fixed}
+  .deadline-wrap .deadline-table th,.deadline-wrap .deadline-table td{width:auto;min-width:0;white-space:normal;overflow-wrap:anywhere}
+  .deadline-wrap .deadline-table th:nth-child(1),.deadline-wrap .deadline-table td:nth-child(1){width:5%}
+  .deadline-wrap .deadline-table th:nth-child(2),.deadline-wrap .deadline-table td:nth-child(2){width:21%}
+  .deadline-wrap .deadline-table th:nth-child(3),.deadline-wrap .deadline-table td:nth-child(3){width:9%}
+  .deadline-wrap .deadline-table th:nth-child(4),.deadline-wrap .deadline-table td:nth-child(4){width:9%}
+  .deadline-wrap .deadline-table th:nth-child(5),.deadline-wrap .deadline-table td:nth-child(5){width:15%}
+  .deadline-wrap .deadline-table th:nth-child(6),.deadline-wrap .deadline-table td:nth-child(6){width:15%}
+  .deadline-wrap .deadline-table th:nth-child(7),.deadline-wrap .deadline-table td:nth-child(7){width:14%}
+  .deadline-wrap .deadline-table th:nth-child(8),.deadline-wrap .deadline-table td:nth-child(8){width:12%}
+  .deadline-wrap td input[type=date]{width:100%;min-width:0;max-width:100%;font-size:12px;padding:6px 4px}
+  .deadline-wrap td .btn{width:100%;max-width:100%;padding:5px 4px;white-space:normal}
+}
+@media(prefers-reduced-motion:reduce){
+  .mobile-nav-toggle,.footer-links a{transition:none!important}
 }
