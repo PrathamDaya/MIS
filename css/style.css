@@ -327,3 +327,15 @@ nav button.on{animation:tabActivate .28s var(--ease)}
 @media(prefers-reduced-motion:reduce){
   .mobile-nav-toggle,.footer-links a{transition:none!important}
 }
+
+/* Company contact details are direct phone and email actions. */
+.contact-links{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:5px;min-width:0;font-size:11px;font-weight:500}
+.contact-links a{color:var(--acc);text-decoration:none;overflow-wrap:anywhere;word-break:break-word}
+.contact-links a:hover{text-decoration:underline}
+@media(max-width:760px){.contact-links{font-size:12px;gap:5px 10px}}
+
+@media(max-width:760px){
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(3){display:block}
+  .tw:not(.deadline-wrap) tbody tr td:nth-child(3)::before{display:inline-block;width:68px;margin-right:8px;vertical-align:top}
+  .contact-links{margin-left:76px}
+}
