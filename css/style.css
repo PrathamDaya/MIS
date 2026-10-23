@@ -328,14 +328,76 @@ nav button.on{animation:tabActivate .28s var(--ease)}
   .mobile-nav-toggle,.footer-links a{transition:none!important}
 }
 
-/* Company contact details are direct phone and email actions. */
-.contact-links{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:5px;min-width:0;font-size:11px;font-weight:500}
-.contact-links a{color:var(--acc);text-decoration:none;overflow-wrap:anywhere;word-break:break-word}
-.contact-links a:hover{text-decoration:underline}
-@media(max-width:760px){.contact-links{font-size:12px;gap:5px 10px}}
 
+
+/* A quieter mobile workspace: focused totals, roomy case cards, and tucked-away controls. */
+body{font-family:"Aptos","Segoe UI Variable","Avenir Next",system-ui,sans-serif;letter-spacing:-.006em}
+.ttl h2,.panel h2,.case h3{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;font-weight:600;letter-spacing:-.025em}
+.secondary-stats{margin:-5px 0 16px}
+.secondary-stats>summary{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--acc);font-size:13px;font-weight:650;list-style:none}
+.secondary-stats>summary::-webkit-details-marker{display:none}
+.secondary-stats>summary::before{content:"+";display:grid;place-items:center;width:20px;height:20px;border:1px solid var(--line);border-radius:50%;font-size:15px}
+.secondary-stats[open]>summary::before{content:"−"}
+.mobile-list,.mobile-filter-toggle{display:none}
+.case-hint{margin:-4px 0 10px;font-size:12px}
 @media(max-width:760px){
-  .tw:not(.deadline-wrap) tbody tr td:nth-child(3){display:block}
-  .tw:not(.deadline-wrap) tbody tr td:nth-child(3)::before{display:inline-block;width:68px;margin-right:8px;vertical-align:top}
-  .contact-links{margin-left:76px}
+  header{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto auto;gap:8px 10px}
+  header .mobile-nav-toggle{grid-column:2;grid-row:1}
+  header .more{display:none;grid-column:1/-1;grid-row:4;min-width:0}
+  header.nav-open .more{display:block}
+  header .more summary{display:none}
+  header .menu{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;min-width:0;width:100%;padding:6px;box-shadow:none;animation:none}
+  header .menu button{min-height:42px}
+  header #primary-nav{grid-row:3}
+  header #add{grid-row:2}
+  .primary-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+  .primary-stats .st{padding:11px 12px;border-radius:14px;box-shadow:none}
+  .primary-stats .st b{font-size:22px}
+  .primary-stats .st span{font-size:11px}
+  .secondary-stats{margin:0 0 16px}
+  .secondary-stats>.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 0}
+  .secondary-stats .st{padding:10px 12px;box-shadow:none}
+  .case-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:10px}
+  .case-toolbar #q{grid-column:1/-1;width:100%;min-height:46px}
+  .case-toolbar #srt{grid-column:1;grid-row:2;width:100%;min-height:44px}
+  .case-toolbar .mobile-filter-toggle{display:inline-flex;grid-column:2;grid-row:2;align-items:center;justify-content:center;min-width:102px;min-height:44px}
+  .case-toolbar #gh,.case-toolbar #rs,.case-toolbar #paste,.case-toolbar #zdue{display:none;grid-column:1/-1;width:100%;min-height:44px}
+  .case-toolbar.mobile-filters-open #gh,.case-toolbar.mobile-filters-open #rs,.case-toolbar.mobile-filters-open #paste,.case-toolbar.mobile-filters-open #zdue{display:block}
+  .case-hint{margin:0 0 8px;font-size:12px}
+  .tw:not(.deadline-wrap){display:block;width:100%;overflow:visible;border:0;background:transparent;box-shadow:none}
+  .tw:not(.deadline-wrap)::before{content:none}
+  .tw:not(.deadline-wrap)>table{display:table;width:100%;min-width:0;table-layout:auto}
+  .tw:not(.deadline-wrap)>table>thead{display:none;margin:0 0 10px}
+  .tw:not(.deadline-wrap).mobile-filters-open>table>thead{display:block}
+  .tw:not(.deadline-wrap)>table>thead>tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:10px;border:1px solid var(--line);border-radius:15px;background:var(--card)}
+  .tw:not(.deadline-wrap)>table>thead th{display:flex;flex-direction:column;justify-content:flex-start;gap:4px;min-width:0;padding:4px;border:0;background:transparent;font-size:10px;line-height:1.3;text-align:left;white-space:normal}
+  .tw:not(.deadline-wrap)>table>thead th .col-filter{width:100%;min-width:0;max-width:100%;min-height:42px;margin:2px 0 0;padding:7px 8px;font-size:16px;text-transform:none}
+  .tw:not(.deadline-wrap)>table>tbody{display:none}
+  .mobile-list{display:grid;gap:10px;width:100%;min-width:0}
+  .mobile-case{min-width:0;padding:13px;border:1px solid var(--line);border-radius:17px;background:var(--card);box-shadow:var(--sh)}
+  .mobile-case-flags{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;color:var(--mut);font-size:12px}
+  .mobile-case-flags label{display:inline-flex;align-items:center;gap:6px;min-height:30px}
+  .mobile-case-flags input{width:19px;height:19px;margin:0;accent-color:var(--acc)}
+  .mobile-company-row{display:flex;align-items:flex-start;gap:7px;min-width:0}
+  .mobile-company-name{flex:1;min-width:0;padding:0;border:0;background:none;color:var(--ink);font:600 20px/1.18 "Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+  .mobile-company-link{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--accs);color:var(--acc);text-decoration:none;font-weight:700}
+  .mobile-case-subtitle{margin:4px 0 11px;color:var(--mut);font-size:12px}
+  .mobile-case-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .mobile-case-summary>div{display:grid;gap:2px;min-width:0}
+  .mobile-case-summary span,.mobile-case-details dt{color:var(--mut);font-size:10px;font-weight:650;letter-spacing:.04em;text-transform:uppercase}
+  .mobile-case-summary b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+  .mobile-rating-row{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 4px}
+  .mobile-rating-row .tag{font-size:11px}
+  .mobile-case-details{margin-top:5px;border-top:1px solid var(--line)}
+  .mobile-case-details summary{padding:10px 0 3px;color:var(--acc);font-size:12px;font-weight:650;cursor:pointer;list-style:none}
+  .mobile-case-details summary::-webkit-details-marker{display:none}
+  .mobile-case-details dl{display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;margin:8px 0 2px}
+  .mobile-case-details dl>div{min-width:0}
+  .mobile-case-details dd{margin:2px 0 0;font-size:12px;overflow-wrap:anywhere}
+  .mobile-case-actions{display:flex;justify-content:flex-end;margin-top:9px}
+  .mobile-case-actions .btn{min-width:88px;min-height:40px}
+  .mobile-empty{padding:28px 18px;border:1px dashed var(--line);border-radius:16px;color:var(--mut);text-align:center}
 }
+@media(min-width:761px){.mobile-list{display:none!important}.mobile-filter-toggle{display:none!important}}
+
+@media(min-width:761px){.secondary-stats>summary{display:none}}

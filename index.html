@@ -5,19 +5,19 @@
 <meta name="description" content="Internal MIS tracker for rating cases, analysts, PR dates, committee work and post-committee deadlines. Case data is loaded from the secured database after sign-in.">
 <title>All cases | Pratham MIS Tracker</title>
 <link rel="icon" href="assets/favicon.svg?v=20261023-1" type="image/svg+xml">
-<link rel="stylesheet" href="css/style.css?v=20261023-2">
+<link rel="stylesheet" href="css/style.css?v=20261023-3">
 <script src="js/vendor/pizzip.min.js"></script>
 </head>
 <body>
 <header><h1><a class="brand-link" href="./" aria-label="Pratham MIS Tracker, go to All cases">Pratham MIS Tracker</a><small id="today"></small></h1>
-<button class="btn mobile-nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">Menu</button>
+<button class="btn mobile-nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav mobile-actions" aria-label="Open navigation and actions">Menu</button>
 <nav id="primary-nav" aria-label="Primary navigation"><button data-v="mis" class="on" aria-current="page">All cases</button><button data-v="ncd" aria-current="false">NCD <span id="nc" class="tag ac">0</span></button><button data-v="ins" aria-current="false">Insights</button><button data-v="dl" aria-current="false">Deadlines <span id="dc" class="tag bad" hidden="">0</span></button><button data-v="cmt" aria-current="false">Committee <span id="bc" class="tag ac">0</span></button></nav>
-<div class="sp"></div><button class="btn p" id="add">+ Add company</button><details class="more"><summary class="btn" aria-label="More actions" data-s="o">⋯</summary><div class="menu"><button id="xs" title="Keep your Excel file and the tracker in sync">Link Excel file</button><button id="dbs" onclick="dbDlg()">Database sync…</button><button id="imp">Import Excel</button><button id="bk">Backup &amp; restore</button><button id="rules">Rating rules</button><button id="th">Switch to light mode</button></div></details></header>
+<div class="sp"></div><button class="btn p" id="add">+ Add company</button><details class="more" id="mobile-actions"><summary class="btn" aria-label="More actions" data-s="o">⋯</summary><div class="menu"><button id="xs" title="Keep your Excel file and the tracker in sync">Link Excel file</button><button id="dbs" onclick="dbDlg()">Database sync…</button><button id="imp">Import Excel</button><button id="bk">Backup &amp; restore</button><button id="rules">Rating rules</button><button id="th">Switch to light mode</button></div></details></header>
 <main id="app"><p class="mut" style="padding:24px">Loading…</p></main>
 <footer class="site-footer"><span>© <span id="copyright-year"></span> Pratham MIS Tracker</span><div class="footer-links"><a class="footer-home" href="./">All cases</a><a href="https://www.infomerics.com/ratings/recent-ratings" target="_blank" rel="noopener noreferrer">Infomerics ratings</a></div></footer>
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div><div id="sel" hidden=""></div>
 <dialog id="dlg"></dialog><input type="file" id="fi" hidden="">
-<script src="js/app.js?v=20261023-2"></script>
+<script src="js/app.js?v=20261023-3"></script>
 </body>
 </html>
 
