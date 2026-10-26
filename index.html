@@ -8,18 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261024-2">
+<link rel="stylesheet" href="css/style.css?v=20261026-1">
 <script src="js/vendor/pizzip.min.js"></script>
 </head>
 <body>
 <header><h1><a class="brand-link" href="./" aria-label="Pratham MIS Tracker, go to All cases">Pratham MIS Tracker</a><small id="today"></small></h1>
 <button class="btn mobile-nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav mobile-actions" aria-label="Open navigation and actions">Menu</button>
-<nav id="primary-nav" aria-label="Primary navigation"><button data-v="mis" class="on" aria-current="page">All cases</button><button data-v="ncd" aria-current="false">NCD <span id="nc" class="tag ac">0</span></button><button data-v="ins" aria-current="false">Insights</button><button data-v="dl" aria-current="false">Deadlines <span id="dc" class="tag bad" hidden="">0</span></button><button data-v="cmt" aria-current="false">Committee <span id="bc" class="tag ac">0</span></button></nav>
-<div class="sp"></div><button class="btn p" id="add">+ Add company</button><details class="more" id="mobile-actions"><summary class="btn" aria-label="More actions" data-s="o">⋯</summary><div class="menu"><button id="xs" title="Keep your Excel file and the tracker in sync">Link Excel file</button><button id="dbs" onclick="dbDlg()">Database sync…</button><button id="imp">Import Excel</button><button id="bk">Backup &amp; restore</button><button id="rules">Rating rules</button><button id="th">Switch to light mode</button></div></details></header>
+<nav id="primary-nav" aria-label="Primary navigation"><span class="nav-indicator" aria-hidden="true"></span><button data-v="mis" class="on" aria-current="page">All cases</button><button data-v="ncd" aria-current="false">NCD <span id="nc" class="tag ac">0</span></button><button data-v="ins" aria-current="false">Insights</button><button data-v="dl" aria-current="false">Deadlines <span id="dc" class="tag bad" hidden="">0</span></button><button data-v="cmt" aria-current="false">Committee <span id="bc" class="tag ac">0</span></button></nav>
+<div class="sp"></div><button class="btn p" id="add">+ Add company</button><details class="more" id="mobile-actions"><summary class="btn" aria-label="More actions" data-s="o">⋯</summary><div class="menu"><button id="xs" title="Keep your Excel file and the tracker in sync">Link Excel file</button><button id="dbs" onclick="dbDlg()">Database sync…</button><button id="imp">Import Excel</button><button id="bk">Backup &amp; restore</button><button id="rules">Rating rules</button><button id="th" class="btn theme-toggle" type="button" aria-label="Switch to light mode" aria-pressed="false"><span class="theme-switch-track" aria-hidden="true"><span class="theme-switch-knob"></span></span><span class="theme-toggle-label">Switch to light mode</span></button></div></details></header>
 <aside class="quick-dock" id="quick-dock" aria-label="Quick actions">
 <button class="dock__btn" type="button" data-dock="search" aria-label="Find a case"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.5 15.5 4.2 4.2"></path></svg><span class="dock__tip">Find a case</span></button>
 <button class="dock__btn" type="button" data-dock="add" aria-label="Add company"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="dock__tip">Add company</span></button>
-<button class="dock__btn" type="button" data-dock="theme" aria-label="Switch theme"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.2 15.1A8.2 8.2 0 0 1 8.9 4.8 8.3 8.3 0 1 0 19.2 15.1Z"></path></svg><span class="dock__tip">Switch theme</span></button>
+<button class="dock__btn" type="button" data-dock="theme" aria-label="Switch theme" aria-pressed="false"><span class="theme-switch-track" aria-hidden="true"><span class="theme-switch-knob"></span></span><span class="dock__tip">Switch theme</span></button>
 <span class="dock__rule" aria-hidden="true"></span>
 <button class="dock__btn" type="button" data-dock="database" aria-label="Database sync"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="7.5" ry="3"></ellipse><path d="M4.5 5v7c0 1.7 3.4 3 7.5 3 1.1 0 2.2-.1 3.1-.3M19.5 5v6M4.5 12v7c0 1.7 3.4 3 7.5 3 1.3 0 2.5-.2 3.5-.5"></path><circle cx="18.5" cy="17.5" r="3"></circle><path d="M18.5 16v3"></path></svg><span class="dock__tip">Database sync</span></button>
 <button class="dock__btn" type="button" data-dock="rules" aria-label="Rating rules"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V5M5 19h15M8 15l3-4 3 2 5-7"></path></svg><span class="dock__tip">Rating rules</span></button>
@@ -28,7 +28,7 @@
 <footer class="site-footer"><span>© <span id="copyright-year"></span> Pratham MIS Tracker</span><div class="footer-links"><a class="footer-home" href="./">All cases</a><a href="https://www.infomerics.com/ratings/recent-ratings" target="_blank" rel="noopener noreferrer">Infomerics ratings</a></div></footer>
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div><div id="sel" hidden=""></div>
 <dialog id="dlg"></dialog><input type="file" id="fi" hidden="">
-<script src="js/app.js?v=20261024-2"></script>
+<script src="js/app.js?v=20261026-1"></script>
 </body>
 </html>
 
