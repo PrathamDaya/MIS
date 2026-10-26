@@ -584,3 +584,41 @@ main{max-width:1440px;padding:24px 32px 104px}
 .mobile-case-flags .pr-done-label{flex:1;justify-content:flex-end;min-width:0}
 .mobile-case-flags input.pr-done-date{width:min(150px,52vw);min-height:34px;padding:4px 7px;border-radius:9px}
 td input.pr-done-date{width:150px}
+
+
+/* Reference-inspired controls: sliding tabs, fly-away action, theme switch and inset sign-in fields. */
+#primary-nav{position:relative;isolation:isolate}
+#primary-nav .nav-indicator{position:absolute;left:0;z-index:0;border-radius:9px;background:var(--card);box-shadow:var(--sh);pointer-events:none;transform:translateX(0);transition:transform .55s cubic-bezier(.34,1.32,.64,1),width .55s cubic-bezier(.34,1.32,.64,1),top .2s var(--ease),height .2s var(--ease)}
+#primary-nav button{position:relative;z-index:1;background:transparent;transition:color .2s var(--ease)}
+#primary-nav button.on{background:transparent;box-shadow:none;color:var(--ink)}
+#primary-nav button:not(.on):hover{color:var(--ink)}
+#primary-nav button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#th.theme-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;text-align:left}
+.theme-switch-track{position:relative;display:block;flex:none;width:42px;height:24px;border-radius:999px;background:color-mix(in srgb,var(--mut) 72%,var(--card));box-shadow:inset 2px 4px 8px color-mix(in srgb,var(--ink) 20%,transparent);transition:background .3s var(--ease)}
+.theme-switch-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--card);box-shadow:0 1px 4px color-mix(in srgb,var(--ink) 25%,transparent);transition:transform .42s cubic-bezier(.34,1.32,.64,1),background .25s var(--ease)}
+.theme-toggle[data-theme-state=dark] .theme-switch-track{background:var(--acc)}
+.theme-toggle[data-theme-state=dark] .theme-switch-knob{transform:translateX(18px) rotate(360deg)}
+.theme-toggle:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.theme-toggle-label{white-space:nowrap}
+#quick-dock .theme-switch-track{width:34px;height:19px;background:rgba(255,255,255,.22);box-shadow:inset 2px 3px 6px rgba(0,0,0,.35)}
+#quick-dock .theme-switch-knob{top:3px;left:3px;width:13px;height:13px;background:#f5f5f7}
+#quick-dock [data-dock=theme][data-theme-state=dark] .theme-switch-track{background:var(--acc)}
+#quick-dock [data-dock=theme][data-theme-state=dark] .theme-switch-knob{transform:translateX(15px) rotate(360deg)}
+#sel .review-button{display:inline-flex;align-items:center;gap:0;min-height:40px;padding:8px 14px;border-radius:16px;overflow:hidden;white-space:nowrap}
+#sel .review-button .svg-wrapper-1,#sel .review-button .svg-wrapper{display:flex;align-items:center;flex:none}
+#sel .review-button .svg-wrapper{transform-origin:center}
+#sel .review-button svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:0}
+#sel .review-button>span:last-child{display:inline-block;margin-left:6px;transition:transform .3s ease-in-out}
+#sel .review-button:hover .svg-wrapper,#sel .review-button:focus-visible .svg-wrapper{animation:review-fly .6s ease-in-out infinite alternate}
+#sel .review-button:hover svg,#sel .review-button:focus-visible svg{transform:translateX(1.1em) rotate(45deg) scale(1.08);transition:transform .3s ease-in-out}
+#sel .review-button:hover>span:last-child,#sel .review-button:focus-visible>span:last-child{transform:translateX(calc(100% + 2em))}
+#sel .review-button:active{transform:scale(.96)}
+#sel .review-button:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+@keyframes review-fly{from{transform:translateY(.1em)}to{transform:translateY(-.1em)}}
+dialog .db-login-title{font-size:20px;letter-spacing:-.02em}
+dialog .db-login-fields{gap:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--card) 84%,var(--bg)),var(--card))}
+dialog .db-login-fields p{line-height:1.55}
+dialog .db-login-fields input{min-height:44px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);box-shadow:inset 2px 4px 9px color-mix(in srgb,var(--ink) 8%,transparent);transition:border-color .2s var(--ease),box-shadow .2s var(--ease),background-color .2s var(--ease)}
+dialog .db-login-fields input:focus-visible{border-color:var(--acc);outline:0;box-shadow:0 0 0 3px var(--accs),inset 2px 4px 9px color-mix(in srgb,var(--ink) 8%,transparent)}
+dialog .db-login-actions .btn{border-radius:10px}
+dialog .db-login-actions .btn.p{background:var(--acc);color:#fff}
