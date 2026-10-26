@@ -588,7 +588,7 @@ td input.pr-done-date{width:150px}
 
 /* Reference-inspired controls: sliding tabs, fly-away action, theme switch and inset sign-in fields. */
 #primary-nav{position:relative;isolation:isolate}
-#primary-nav .nav-indicator{position:absolute;left:0;z-index:0;border-radius:9px;background:var(--card);box-shadow:var(--sh);pointer-events:none;transform:translateX(0);transition:transform .55s cubic-bezier(.34,1.32,.64,1),width .55s cubic-bezier(.34,1.32,.64,1),top .2s var(--ease),height .2s var(--ease)}
+#primary-nav .nav-indicator{position:absolute;top:0;left:0;z-index:0;width:0;height:0;border-radius:9px;background:var(--card);box-shadow:var(--sh);pointer-events:none;transform:translate(0,0);transition:transform .55s cubic-bezier(.34,1.32,.64,1),width .55s cubic-bezier(.34,1.32,.64,1),height .55s cubic-bezier(.34,1.32,.64,1)}
 #primary-nav button{position:relative;z-index:1;background:transparent;transition:color .2s var(--ease)}
 #primary-nav button.on{background:transparent;box-shadow:none;color:var(--ink)}
 #primary-nav button:not(.on):hover{color:var(--ink)}
@@ -622,3 +622,9 @@ dialog .db-login-fields input{min-height:44px;padding:11px 14px;border:1px solid
 dialog .db-login-fields input:focus-visible{border-color:var(--acc);outline:0;box-shadow:0 0 0 3px var(--accs),inset 2px 4px 9px color-mix(in srgb,var(--ink) 8%,transparent)}
 dialog .db-login-actions .btn{border-radius:10px}
 dialog .db-login-actions .btn.p{background:var(--acc);color:#fff}
+
+
+/* Motion supplies spring physics when its pinned module loads; CSS remains the fallback. */
+html.motion-ready #primary-nav .nav-indicator{transition:none}
+html.motion-ready .view-enter,html.motion-ready .view-enter>*,html.motion-ready .view-enter .st{animation:none!important}
+html.motion-ready .view-enter .st{transition:none!important}
