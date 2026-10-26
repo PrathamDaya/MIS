@@ -581,9 +581,7 @@ main{max-width:1440px;padding:24px 32px 104px}
 .btn,.st{transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s var(--ease),background-color .2s var(--ease)}
 .btn:hover:not(:disabled),.st:hover{transform:translateY(-2px)}
 .btn:active:not(:disabled),.st:active{transform:translateY(0) scale(.975)}
-.mobile-case-flags .pr-done-label{flex:1;justify-content:flex-end;min-width:0}
-.mobile-case-flags input.pr-done-date{width:min(150px,52vw);min-height:34px;padding:4px 7px;border-radius:9px}
-td input.pr-done-date{width:150px}
+
 
 
 /* Reference-inspired controls: sliding tabs, fly-away action, theme switch and inset sign-in fields. */
