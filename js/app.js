@@ -147,7 +147,7 @@ function generateDlg(){
     z.folder(root+"/Post Rating Process");z.folder(root+"/Rating Pack");z.folder(root+"/Rating Process");
     const dateText=dt.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
     const cl=cur(c,item.b,"lt"),cs=cur(c,item.b,"st");
-    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"mail dates":mailDates(c),"last pr date":c.lp?D0(c.lp).toLocaleDateString("en-US",{month:"long",day:"2-digit",year:"numeric"}):"–","company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
+    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"mail dates":mailDates(c),"last pr date":c.lp?D0(c.lp).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"–","company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
     const literals={"April 07, 2025":dateText,"[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
     for(const[k,label]of selected){
      const docVals=k==="note"?vals:{...vals,"amount words":""};
