@@ -22,7 +22,7 @@ const over=c=>{const d=due(c);return d?Math.round((TODAY-d)/864e5):null};
 const fd=s=>s?D0(s).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"–";
 const words=n=>{const o=["Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"],t=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
  const two=n=>n<20?o[n]:t[n/10|0]+(n%10?" "+o[n%10]:""),w=n=>{if(!n)return"";let r="";for(const[v,l]of[[1e7,"Crore"],[1e5,"Lakh"],[1e3,"Thousand"]])if(n>=v){r+=w(n/v|0)+" "+l+" ";n%=v}if(n>=100){r+=o[n/100|0]+" Hundred ";n%=100}if(n)r+=two(n);return r.trim()};return w(n)||"Zero"};
-const amtWords=a=>{if(a===""||a==null||isNaN(a))return"";let w=Math.floor(a),d=Math.round((a-w)*100);if(d===100){w++;d=0}return"Rupees "+words(w)+(d?" Point "+String(d).padStart(2,"0").split("").map(x=>words(+x)).join(" "):"")+" Crore Only"};
+const amtWords=a=>{if(a===""||a==null||!Number.isFinite(Number(a)))return"";const units=Math.round(Number(a)*100);if(units<0)return"";const crore=Math.floor(units/100),lakhs=units%100,parts=[];if(crore)parts.push(words(crore)+" Crore");if(lakhs)parts.push(words(lakhs)+(lakhs===1?" Lakh":" Lakhs"));return"Rupees "+(parts.join(" and ")||"Zero")+" only"}
 /* ---------- views ---------- */
 const stat=c=>{const o=over(c);return c.w?["Withdrawn","nu"]:c.tr?["Transferred","nu"]:o==null?["No PR date","nu"]:o>0?[o+"d overdue","bad"]:o>=-30?["Due in "+-o+"d","warn"]:["Due in "+-o+"d","ok"]};
 function list(){let r=S.co.filter(c=>{if(V==="ncd"&&!c.ncd)return false;if(F.rs==="live"&&c.tr||F.rs==="tr"&&!c.tr)return false;if(F.an&&c.an!==F.an)return false;if(F.gh&&c.gh!==F.gh)return false;
@@ -101,6 +101,7 @@ function fill(xml,vals,literals,opts){
   const ln=tx.map(x=>x.length),st=[];let pos=0;ln.forEach(l=>{st.push(pos);pos+=l});
   const ed=[];let m;PH.lastIndex=0;while((m=PH.exec(full))){const k=m[1].replace(/\s+/g," ").trim().toLowerCase();if(k in vals)ed.push([m.index,m.index+m[0].length,vals[k]])}
   Object.entries(literals||{}).forEach(([from,to])=>{if(!from)return;let at=0;while((at=full.indexOf(from,at))>=0){ed.push([at,at+from.length,String(to)]);at+=from.length}});
+  const dateNow=new Date(),dateShort=dateNow.toLocaleDateString("en-US",{month:"short"}),dateLong=dateNow.toLocaleDateString("en-US",{month:"long"}),dateYear=dateNow.getFullYear(),datePattern=/\b(Mmmm|Mmm)\s+XX,\s*(?:Y{3,4}|\d{4})\b/gi;let dm;while((dm=datePattern.exec(full)))ed.push([dm.index,dm.index+dm[0].length,(dm[1].length===4?dateLong:dateShort)+" XX, "+dateYear]);
   ed.sort((a,b)=>b[0]-a[0]);
   for(const[a,b,v]of ed){let first=true;ts.forEach((t,i)=>{const x=st[i],y=x+ln[i];if(y<=a||x>=b)return;const lo=Math.max(a,x)-x,hi=Math.min(b,y)-x;tx[i]=tx[i].slice(0,lo)+(first?v:"")+tx[i].slice(hi);first=false})}
   if(ed.length)ts.forEach((t,i)=>{t.textContent=tx[i];t.setAttribute("xml:space","preserve")})
@@ -146,11 +147,12 @@ function generateDlg(){
     z.folder(root+"/Post Rating Process");z.folder(root+"/Rating Pack");z.folder(root+"/Rating Process");
     const dateText=dt.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"});
     const cl=cur(c,item.b,"lt"),cs=cur(c,item.b,"st");
-    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"mail dates":mailDates(c),"company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
+    const vals={"company name":c.n,"amount":c.a==null?"":(+c.a).toFixed(2),"amount words":amtWords(c.a),"previous rating lt":c.lt,"previous rating st":c.st,"current rating lt":cl,"current rating st":cs,"action lt":action(c.lt,cl,"lt"),"action st":action(c.st,cs,"st"),"committee date":dateText,"rating date":dateText,"mail dates":mailDates(c),"last pr date":c.lp?D0(c.lp).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}):"–","company short name":"","company acronym":"","short name":"","formerly known as":"","former name":"","funding basis":""};
     const literals={"April 07, 2025":dateText,"[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
     for(const[k,label]of selected){
+     const docVals=k==="note"?vals:{...vals,"amount words":""};
      const template=new PizZip(b64Bytes(S.docTemplates[k]));
-     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),vals,literals,opts)));
+     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),docVals,literals,opts)));
      const typeFolder=k==="note"?"Rating Pack":"Post Rating Process",title=label==="Press Release"?"Press Release":label;
      z.folder(root+"/"+typeFolder).file(title+"_"+clean(c.n)+".docx",template.generate({type:"uint8array",compression:"DEFLATE"}));count++
     }
