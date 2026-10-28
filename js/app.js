@@ -151,8 +151,9 @@ function generateDlg(){
     const literals={"April 07, 2025":dateText,"[Fund/Non-Fund based]":"","[Formerly known as ...]":""};
     for(const[k,label]of selected){
      const docVals=k==="note"?vals:{...vals,"amount words":""};
+     const docLiterals={...literals};if(k==="note")delete docLiterals["April 07, 2025"];
      const template=new PizZip(b64Bytes(S.docTemplates[k]));
-     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),docVals,literals,opts)));
+     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),docVals,docLiterals,opts)));
      const typeFolder=k==="note"?"Rating Pack":"Post Rating Process",title=label==="Press Release"?"Press Release":label;
      z.folder(root+"/"+typeFolder).file(title+"_"+clean(c.n)+".docx",template.generate({type:"uint8array",compression:"DEFLATE"}));count++
     }
