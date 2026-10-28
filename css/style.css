@@ -627,3 +627,20 @@ dialog .db-login-actions .btn.p{background:var(--acc);color:#fff}
 html.motion-ready #primary-nav .nav-indicator{transition:none}
 html.motion-ready .view-enter,html.motion-ready .view-enter>*,html.motion-ready .view-enter .st{animation:none!important}
 html.motion-ready .view-enter .st{transition:none!important}
+
+/* Annexure 1 facility entry: horizontal columns matching the Word table */
+@supports selector(dialog:has(.annexure-case)){dialog:has(.annexure-case){width:min(1320px,98vw);max-width:98vw}}
+.annexure-dialog-body{display:block!important;max-height:72vh!important}
+.annexure-dialog-body>.f{margin:0 0 10px}
+.annexure-case{border:1px solid var(--line);border-radius:12px;margin:10px 0;background:var(--card)}
+.annexure-case>summary{padding:10px 14px;cursor:pointer;font-weight:600}
+.annexure-case-body{padding:0 12px 12px}
+.annexure-table-scroll{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:9px}
+.annexure-input-table{width:max-content;min-width:100%;border-collapse:collapse}
+.annexure-input-table th{position:static;white-space:normal;text-transform:none;letter-spacing:0;min-width:140px;max-width:220px;padding:8px;font-size:11px}
+.annexure-input-table td{min-width:140px;max-width:220px;padding:6px;vertical-align:top}
+.annexure-input-table td:first-child{min-width:190px}
+.annexure-input-table input,.annexure-input-table select{width:100%;min-width:130px;max-width:none;padding:6px 8px}
+.annexure-input-table .annexure-remove{margin-top:5px;padding:4px 10px;font-size:11px}
+.annexure-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.annexure-help{font-size:12px!important;line-height:1.5}
