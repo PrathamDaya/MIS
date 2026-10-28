@@ -175,6 +175,7 @@ function writeAnnexureTable(xml,company,kind,cl,cs){
  const output=new XMLSerializer().serializeToString(doc);
  return/^<\?xml/.test(output)?output:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+output;
 }
+function refreshGenerateDlg(){const chosen=docKinds.map(([k])=>[k,$("#gen-"+k)?.checked!==false]);generateDlg();chosen.forEach(([k,on])=>{const input=$("#gen-"+k);if(input)input.checked=on})}
 function generateDlg(){
  const dlg=$("#dlg");if(dlg.open)dlg.close();const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);
  dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db annexure-dialog-body"><p class="f mut" style="margin:0 0 10px">Choose document types and enter Annexure 1 facilities for each company. The same horizontal facility rows are inserted into the Note, Rating Letter, and Press Release.</p>'+
@@ -192,9 +193,9 @@ function generateDlg(){
  };
  dlg.onclick=async e=>{
   const add=e.target.closest("[data-add-facility]");
-  if(add){const company=co(+add.dataset.addFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.push(emptyFacility());company.annexure1=rows;save();return generateDlg()}
+  if(add){const company=co(+add.dataset.addFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.push(emptyFacility());company.annexure1=rows;save();return refreshGenerateDlg()}
   const remove=e.target.closest("[data-remove-facility]");
-  if(remove){const company=co(+remove.dataset.removeFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.splice(+remove.dataset.facilityRow,1);company.annexure1=rows.length?rows:[emptyFacility()];save();return generateDlg()}
+  if(remove){const company=co(+remove.dataset.removeFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.splice(+remove.dataset.facilityRow,1);company.annexure1=rows.length?rows:[emptyFacility()];save();return refreshGenerateDlg()}
   const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
   const selected=docKinds.filter(([k])=>$("#gen-"+k).checked);if(!selected.length)return toast("Select at least one document type");
   if(!cases.length)return toast("Select at least one case first");
