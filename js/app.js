@@ -129,16 +129,79 @@ function templateDlg(){
   }catch(err){toast("Could not save templates: "+err.message)}
  }
 }
+const ANNEXURE_HEADERS=["Name of Facility/ /Security","ISIN","Date of Issuance","Coupon Rate/ IRR","Maturity Date","Size of Facility / (Rs. Crore)","Rating Assigned/ Outlook","Listing Status","Regulator^","Complexity Indicator"];
+const ANNEXURE_FIELDS=[["name","Name of Facility / Security"],["isin","ISIN"],["issuance","Date of Issuance"],["coupon","Coupon Rate / IRR"],["maturity","Maturity Date"],["size","Size of Facility (Rs. Crore)"],["ratingType","Rating Assigned / Outlook"],["listingStatus","Listing Status"],["regulator","Regulator^"],["complexity","Complexity Indicator"]];
+const emptyFacility=()=>({name:"",isin:"-",issuance:"-",coupon:"-",maturity:"-",size:"",ratingType:"",listingStatus:"NA",regulator:"RBI",complexity:"Simple"});
+function facilityEditor(c,index){
+ const rows=Array.isArray(c.annexure1)&&c.annexure1.length?c.annexure1:[emptyFacility()];
+ const heads=ANNEXURE_FIELDS.map(([,label])=>"<th scope=\"col\">"+label+"</th>").join("");
+ const body=rows.map((row,i)=>"<tr>"+ANNEXURE_FIELDS.map(([field])=>{
+  if(field==="ratingType")return"<td><select data-facility-id=\""+c.id+"\" data-facility-row=\""+i+"\" data-facility-field=\"ratingType\" aria-label=\"Rating option for row "+(i+1)+"\"><option value=\"\">Choose LT / ST / Both</option><option value=\"LT\" "+(row.ratingType==="LT"?"selected":"")+">LT</option><option value=\"ST\" "+(row.ratingType==="ST"?"selected":"")+">ST</option><option value=\"Both\" "+(row.ratingType==="Both"?"selected":"")+">Both</option></select></td>";
+  const remove=field==="name"?"<button class=\"btn annexure-remove\" type=\"button\" data-remove-facility=\""+c.id+"\" data-facility-row=\""+i+"\" aria-label=\"Remove facility row "+(i+1)+"\">Remove</button>":"";
+  return"<td><input type=\"text\" value=\""+esc(row[field]??"")+"\" data-facility-id=\""+c.id+"\" data-facility-row=\""+i+"\" data-facility-field=\""+field+"\" aria-label=\""+ANNEXURE_FIELDS.find(x=>x[0]===field)[1]+" for row "+(i+1)+"\">"+remove+"</td>";
+ }).join("")+"</tr>").join("");
+ return"<details class=\"annexure-case\" "+(index===0?"open":"")+"><summary>"+esc(c.n)+" · "+(Array.isArray(c.annexure1)?c.annexure1.length:0)+" saved facility row(s)</summary><div class=\"annexure-case-body\"><div class=\"annexure-table-scroll\" role=\"region\" tabindex=\"0\" aria-label=\"Horizontal Annexure 1 facilities table for "+esc(c.n)+"\"><table class=\"annexure-input-table\"><thead><tr>"+heads+"</tr></thead><tbody>"+body+"</tbody></table></div><div class=\"annexure-actions\"><button class=\"btn\" type=\"button\" data-add-facility=\""+c.id+"\">+ Add facility</button><span class=\"mut\">Rows are saved to this company and reused next time. Scroll horizontally to reach all 10 columns.</span></div></div></details>";
+}
+function annexureRating(row,kind,cl,cs){
+ if(kind==="note")return"-";
+ const selected=row.ratingType==="Both"?[cl,cs]:row.ratingType==="LT"?[cl]:row.ratingType==="ST"?[cs]:[];
+ return selected.filter(Boolean).map(value=>String(value).replace(/;?\s*ISSUER NOT COOPERATING\*?/ig,"; ISSUER NOT COOPERATING*")).join(" / ")||"-";
+}
+function writeAnnexureTable(xml,company,kind,cl,cs){
+ const doc=new DOMParser().parseFromString(xml,"application/xml");
+ if(doc.getElementsByTagName("parsererror").length)throw new Error("The Word document XML could not be read");
+ const normalize=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+ const textOf=el=>[...el.getElementsByTagName("w:t")].map(t=>t.textContent).join("");
+ const expected=ANNEXURE_HEADERS.map(normalize);
+ const table=[...doc.getElementsByTagName("w:tbl")].find(tbl=>{
+  const row=tbl.getElementsByTagName("w:tr")[0];if(!row)return false;
+  const cells=[...row.getElementsByTagName("w:tc")];
+  return cells.length>=expected.length&&expected.every((heading,i)=>normalize(textOf(cells[i]))===heading);
+ });
+ if(!table)throw new Error("Could not find the 10-column Annexure 1 table in the "+(kind==="note"?"Rating Note":kind==="letter"?"Rating Letter":"Press Release")+" template. Keep the Annexure 1 column headings unchanged.");
+ const rows=[...table.getElementsByTagName("w:tr")];if(rows.length<2)throw new Error("The Annexure 1 template needs one sample facility row to preserve its formatting");
+ const prototype=rows[1].cloneNode(true);rows.slice(1).forEach(row=>row.parentNode.removeChild(row));
+ const facilities=(Array.isArray(company.annexure1)?company.annexure1:[]).filter(row=>String(row.name||"").trim());
+ for(const facility of facilities){
+  const row=prototype.cloneNode(true),cells=[...row.getElementsByTagName("w:tc")];
+  const values=[facility.name,facility.isin,facility.issuance,facility.coupon,facility.maturity,facility.size,annexureRating(facility,kind,cl,cs),facility.listingStatus,facility.regulator,facility.complexity];
+  cells.slice(0,values.length).forEach((cell,i)=>{
+   const runs=[...cell.getElementsByTagName("w:t")];
+   if(!runs.length)throw new Error("An Annexure 1 template cell has no editable text run");
+   runs[0].textContent=String(values[i]??"");runs[0].setAttribute("xml:space","preserve");runs.slice(1).forEach(run=>run.textContent="");
+  });
+  table.appendChild(row);
+ }
+ const output=new XMLSerializer().serializeToString(doc);
+ return/^<\?xml/.test(output)?output:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+output;
+}
 function generateDlg(){
- const dlg=$("#dlg");
- dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db"><p class="f mut" style="margin:0 0 10px">Choose one or more document types. All selected cases will be combined into one ZIP with a folder for each company and committee month.</p>'+
+ const dlg=$("#dlg");if(dlg.open)dlg.close();const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);
+ dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db annexure-dialog-body"><p class="f mut" style="margin:0 0 10px">Choose document types and enter Annexure 1 facilities for each company. The same horizontal facility rows are inserted into the Note, Rating Letter, and Press Release.</p>'+
  docKinds.map(([k,n])=>'<label class="f"><span><input type="checkbox" id="gen-'+k+'" checked> '+n+' · '+((S.docTemplates||{})[k]?'template saved':'template needed')+'</span></label>').join("")+
- '<p class="f mut" style="margin:0;font-size:12px">Short name, former name, and funding-basis placeholders in the Word templates are omitted automatically. The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
- dlg.showModal();dlg.onclick=async e=>{
+ '<p class="f mut annexure-help">Add the 10-column headings below each company. Rating Note always shows “-”. For Rating Letter and Press Release, choose LT, ST, or Both; the current committee rating is used, with the * marker when “ISSUER NOT COOPERATING” is enabled. You can enter “-” in any field that does not apply.</p>'+
+ cases.map((item,i)=>facilityEditor(item.c,i)).join("")+
+ '<p class="f mut annexure-help">Short name, former name, and funding-basis placeholders in Word templates are omitted automatically. The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
+ dlg.showModal();
+ dlg.onchange=e=>{
+  const t=e.target;if(!t.dataset.facilityField)return;
+  const company=co(+t.dataset.facilityId),rowIndex=+t.dataset.facilityRow,field=t.dataset.facilityField;if(!company)return;
+  const rows=Array.isArray(company.annexure1)?company.annexure1.slice():[];
+  while(rows.length<=rowIndex)rows.push(emptyFacility());
+  rows[rowIndex][field]=t.value;company.annexure1=rows;const summary=t.closest(".annexure-case")?.querySelector("summary");if(summary)summary.textContent=company.n+" · "+rows.length+" saved facility row(s)";save();
+ };
+ dlg.onclick=async e=>{
+  const add=e.target.closest("[data-add-facility]");
+  if(add){const company=co(+add.dataset.addFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.push(emptyFacility());company.annexure1=rows;save();return generateDlg()}
+  const remove=e.target.closest("[data-remove-facility]");
+  if(remove){const company=co(+remove.dataset.removeFacility);if(!company)return;const rows=Array.isArray(company.annexure1)&&company.annexure1.length?company.annexure1.slice():[emptyFacility()];rows.splice(+remove.dataset.facilityRow,1);company.annexure1=rows.length?rows:[emptyFacility()];save();return generateDlg()}
   const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();
   const selected=docKinds.filter(([k])=>$("#gen-"+k).checked);if(!selected.length)return toast("Select at least one document type");
-  const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);if(!cases.length)return toast("Select at least one case first");
+  if(!cases.length)return toast("Select at least one case first");
   const missing=selected.filter(([k])=>!(S.docTemplates||{})[k]);if(missing.length){dlg.close();return toast("Upload the "+missing.map(x=>x[1]).join(", ")+" template(s) with Update Word templates first")}
+  const withFacilities=cases.filter(({c})=>Array.isArray(c.annexure1)&&c.annexure1.some(row=>String(row.name||"").trim()));
+  if(withFacilities.length!==cases.length)return toast("Enter at least one facility name in Annexure 1 for every selected company");
+  if(selected.some(([k])=>k==="letter"||k==="pr")&&cases.some(({c})=>c.annexure1.some(row=>String(row.name||"").trim()&&!["LT","ST","Both"].includes(row.ratingType))))return toast("Choose LT, ST, or Both for each facility before generating the Rating Letter or Press Release");
   try{
    const z=new PizZip();let count=0;
    for(const item of cases){
@@ -152,7 +215,8 @@ function generateDlg(){
     for(const[k,label]of selected){
      const docVals=k==="note"?vals:{...vals,"amount words":""};
      const template=new PizZip(b64Bytes(S.docTemplates[k]));
-     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};template.file(PARTS).forEach(f=>template.file(f.name,fill(f.asText(),docVals,literals,opts)));
+     const noOutlook=needsNoOutlook(cl,cs),opts={omitOutlook:(k==="note"||k==="pr")&&noOutlook,notApplicable:k==="pr"&&noOutlook};
+     template.file(PARTS).forEach(f=>{let xml=fill(f.asText(),docVals,literals,opts);if(f.name==="word/document.xml")xml=writeAnnexureTable(xml,c,k,cl,cs);template.file(f.name,xml)});
      const typeFolder=k==="note"?"Rating Pack":"Post Rating Process",title=label==="Press Release"?"Press Release":label;
      z.folder(root+"/"+typeFolder).file(title+"_"+clean(c.n)+".docx",template.generate({type:"uint8array",compression:"DEFLATE"}));count++
     }
