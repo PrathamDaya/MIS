@@ -644,3 +644,5 @@ html.motion-ready .view-enter .st{transition:none!important}
 .annexure-input-table .annexure-remove{margin-top:5px;padding:4px 10px;font-size:11px}
 .annexure-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
 .annexure-help{font-size:12px!important;line-height:1.5}
+
+.annexure-current-ratings{margin:8px 2px 0;font-size:12px;line-height:1.45}
