@@ -132,20 +132,21 @@ function templateDlg(){
 const ANNEXURE_HEADERS=["Name of Facility/ /Security","ISIN","Date of Issuance","Coupon Rate/ IRR","Maturity Date","Size of Facility / (Rs. Crore)","Rating Assigned/ Outlook","Listing Status","Regulator^","Complexity Indicator"];
 const ANNEXURE_FIELDS=[["name","Name of Facility / Security"],["isin","ISIN"],["issuance","Date of Issuance"],["coupon","Coupon Rate / IRR"],["maturity","Maturity Date"],["size","Size of Facility (Rs. Crore)"],["ratingType","Rating Assigned / Outlook"],["listingStatus","Listing Status"],["regulator","Regulator^"],["complexity","Complexity Indicator"]];
 const emptyFacility=()=>({name:"",isin:"-",issuance:"-",coupon:"-",maturity:"-",size:"",ratingType:"",listingStatus:"NA",regulator:"RBI",complexity:"Simple"});
-function facilityEditor(c,index){
+function facilityEditor(c,index,cl,cs){
  const rows=Array.isArray(c.annexure1)&&c.annexure1.length?c.annexure1:[emptyFacility()];
+ const ratingPreview="Current committee ratings used: LT — "+annexureRating({ratingType:"LT"},"pr",cl,cs)+" · ST — "+annexureRating({ratingType:"ST"},"pr",cl,cs)+". Choose which rating(s) apply to each facility.";
  const heads=ANNEXURE_FIELDS.map(([,label])=>"<th scope=\"col\">"+label+"</th>").join("");
  const body=rows.map((row,i)=>"<tr>"+ANNEXURE_FIELDS.map(([field])=>{
   if(field==="ratingType")return"<td><select data-facility-id=\""+c.id+"\" data-facility-row=\""+i+"\" data-facility-field=\"ratingType\" aria-label=\"Rating option for row "+(i+1)+"\"><option value=\"\">Choose LT / ST / Both</option><option value=\"LT\" "+(row.ratingType==="LT"?"selected":"")+">LT</option><option value=\"ST\" "+(row.ratingType==="ST"?"selected":"")+">ST</option><option value=\"Both\" "+(row.ratingType==="Both"?"selected":"")+">Both</option></select></td>";
   const remove=field==="name"?"<button class=\"btn annexure-remove\" type=\"button\" data-remove-facility=\""+c.id+"\" data-facility-row=\""+i+"\" aria-label=\"Remove facility row "+(i+1)+"\">Remove</button>":"";
   return"<td><input type=\"text\" value=\""+esc(row[field]??"")+"\" data-facility-id=\""+c.id+"\" data-facility-row=\""+i+"\" data-facility-field=\""+field+"\" aria-label=\""+ANNEXURE_FIELDS.find(x=>x[0]===field)[1]+" for row "+(i+1)+"\">"+remove+"</td>";
  }).join("")+"</tr>").join("");
- return"<details class=\"annexure-case\" "+(index===0?"open":"")+"><summary>"+esc(c.n)+" · "+(Array.isArray(c.annexure1)?c.annexure1.length:0)+" saved facility row(s)</summary><div class=\"annexure-case-body\"><div class=\"annexure-table-scroll\" role=\"region\" tabindex=\"0\" aria-label=\"Horizontal Annexure 1 facilities table for "+esc(c.n)+"\"><table class=\"annexure-input-table\"><thead><tr>"+heads+"</tr></thead><tbody>"+body+"</tbody></table></div><div class=\"annexure-actions\"><button class=\"btn\" type=\"button\" data-add-facility=\""+c.id+"\">+ Add facility</button><span class=\"mut\">Rows are saved to this company and reused next time. Scroll horizontally to reach all 10 columns.</span></div></div></details>";
+ return"<details class=\"annexure-case\" "+(index===0?"open":"")+"><summary>"+esc(c.n)+" · "+(Array.isArray(c.annexure1)?c.annexure1.length:0)+" saved facility row(s)</summary><div class=\"annexure-case-body\"><div class=\"annexure-table-scroll\" role=\"region\" tabindex=\"0\" aria-label=\"Horizontal Annexure 1 facilities table for "+esc(c.n)+"\"><table class=\"annexure-input-table\"><thead><tr>"+heads+"</tr></thead><tbody>"+body+"</tbody></table></div><p class=\"annexure-current-ratings mut\">"+ratingPreview+"</p><div class=\"annexure-actions\"><button class=\"btn\" type=\"button\" data-add-facility=\""+c.id+"\">+ Add facility</button><span class=\"mut\">Rows are saved to this company and reused next time. Scroll horizontally to reach all 10 columns.</span></div></div></details>";
 }
 function annexureRating(row,kind,cl,cs){
  if(kind==="note")return"-";
  const selected=row.ratingType==="Both"?[cl,cs]:row.ratingType==="LT"?[cl]:row.ratingType==="ST"?[cs]:[];
- return selected.filter(Boolean).map(value=>String(value).replace(/;?\s*ISSUER NOT COOPERATING\*?/ig,"; ISSUER NOT COOPERATING*")).join(" / ")||"-";
+ return selected.filter(Boolean).map(value=>String(value).replace(/;?\s*ISSUER NOT COOPERATING\*?/ig,"; ISSUER NOT COOPERATING*")).join(" & ")||"-";
 }
 function writeAnnexureTable(xml,company,kind,cl,cs){
  const doc=new DOMParser().parseFromString(xml,"application/xml");
@@ -180,8 +181,8 @@ function generateDlg(){
  const dlg=$("#dlg");if(dlg.open)dlg.close();const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);
  dlg.innerHTML='<div class="dh">Generate documents for '+S.bk.length+' selected case(s)</div><div class="db annexure-dialog-body"><p class="f mut" style="margin:0 0 10px">Choose document types and enter Annexure 1 facilities for each company. The same horizontal facility rows are inserted into the Note, Rating Letter, and Press Release.</p>'+
  docKinds.map(([k,n])=>'<label class="f"><span><input type="checkbox" id="gen-'+k+'" checked> '+n+' · '+((S.docTemplates||{})[k]?'template saved':'template needed')+'</span></label>').join("")+
- '<p class="f mut annexure-help">Add the 10-column headings below each company. Rating Note always shows “-”. For Rating Letter and Press Release, choose LT, ST, or Both; the current committee rating is used, with the * marker when “ISSUER NOT COOPERATING” is enabled. You can enter “-” in any field that does not apply.</p>'+
- cases.map((item,i)=>facilityEditor(item.c,i)).join("")+
+ '<p class="f mut annexure-help">Add the 10-column headings below each company. Rating Note always shows “-”. For Rating Letter and Press Release, choose LT, ST, or Both. The grade is taken from the current rating selected for that company in Committee; this screen does not ask for another grade. Both prints the LT and ST ratings separated by “&”. The * marker follows the existing “ISSUER NOT COOPERATING” option. You can enter “-” in any field that does not apply.</p>'+
+ cases.map((item,i)=>facilityEditor(item.c,i,cur(item.c,item.b,"lt"),cur(item.c,item.b,"st"))).join("")+
  '<p class="f mut annexure-help">Short name, former name, and funding-basis placeholders in Word templates are omitted automatically. The committee date sets the MMMYY folder name.</p></div><div class="df"><button class="btn" value="x">Cancel</button><button class="btn p" value="ok">Generate ZIP</button></div>';
  dlg.showModal();
  dlg.onchange=e=>{
