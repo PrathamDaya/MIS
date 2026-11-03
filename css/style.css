@@ -627,3 +627,12 @@ dialog .db-login-actions .btn.p{background:var(--acc);color:#fff}
 html.motion-ready #primary-nav .nav-indicator{transition:none}
 html.motion-ready .view-enter,html.motion-ready .view-enter>*,html.motion-ready .view-enter .st{animation:none!important}
 html.motion-ready .view-enter .st{transition:none!important}
+
+/* Badge Pop: the selected tab's count gathers into three dots until you leave it. */
+header nav .tag{position:relative;overflow:hidden;transition:min-width .32s var(--ease),width .32s var(--ease),height .32s var(--ease),padding .32s var(--ease),background-color .24s var(--ease),color .2s var(--ease)}
+header nav .tag::before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;border-radius:50%;background:var(--rust);opacity:0;transform:translate(-50%,-50%) scale(.2);box-shadow:-6px 0 0 var(--rust),6px 0 0 var(--rust);transition:opacity .16s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
+header nav .tag.badge-dots{width:21px;height:14px;min-width:21px;padding:0;border-radius:999px;background:transparent;color:transparent;font-size:0}
+header nav .tag.badge-dots::before{opacity:1;transform:translate(-50%,-50%) scale(1);animation:badgePop .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes badgePop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.35)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(prefers-reduced-motion:reduce){header nav .tag,header nav .tag::before{transition:none!important;animation:none!important}}
+
