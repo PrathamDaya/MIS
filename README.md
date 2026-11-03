@@ -1,19 +1,21 @@
 # Pratham MIS Tracker
 
-Static site (HTML + CSS + JavaScript). Hosted on GitHub Pages. Company case data is stored in Supabase, not in this repository.
+A static site for the Pratham MIS Tracker. It runs directly from GitHub Pages and has no build step. GitHub Pages should publish the `main` branch from the repository root.
 
-## Update the website
+## Supabase setup
 
-The website files live in the repository root. GitHub Pages should deploy the \`main\` branch from \`/\`.
+Case data is stored in Supabase. Sign in with an existing Supabase Auth account; public sign-ups stay disabled. Before using the updated site, run the additive SQL migration in `supabase/migrations/20261103121739_secure_allowed_users_and_audit_log.sql` using the steps in `supabase/SECURITY_CHECKLIST.md`.
 
-## Analyst accounts and case transfers
+New analysts need a Supabase Auth account and a matching row in `public.allowed_users`. The `mis_state` policies restrict each analyst to their own row. Database triggers create per-case History entries for edits and imports.
 
-Run \`supabase/analyst-transfer.sql\` once in the Supabase SQL Editor to move the existing shared MIS row to the owner account and enable per-login case ownership. Before running it, replace \`REPLACE_WITH_YOUR_SUPABASE_LOGIN_EMAIL\` in the script with the login email that should keep the current portfolio.
+## Portfolio Excel
 
-After the migration, each sign-in sees only its own cases. Edit a case and choose **Transfer to analyst…** to move it atomically to another Supabase Auth account. The case is removed from the sender and added to the recipient, with the recipient set as its analyst.
+- **Import Excel** reads the Portfolio `ALL` sheet and shows new, changed, unchanged, and missing cases before applying changes. Deleting missing cases is unchecked by default.
+- **Export Portfolio template…** asks you to choose a workbook and downloads a formatted copy. It does not edit the selected workbook.
+- **Backup & restore** downloads a private JSON copy; restore shows a preview before applying it.
 
-Transfer every case before deleting an analyst under Supabase **Authentication → Users**. Supabase blocks account deletion while cases remain; after the cases are transferred, deleting that user also removes its empty database state.
+Keep downloaded case files in a private location outside this repository. Never commit Excel, CSV, Word, mail, JSON backup, database dump, password, or Supabase secret/service-role files.
 
-The current site remains compatible with the original shared database setup until the SQL migration has been run. New accounts must be created in Supabase Authentication before they appear in the transfer list.
+## Historical data exposure
 
-Never commit Excel, CSV, JSON case data, passwords, or a Supabase secret/service_role key to this repository.
+The public Git history contains an old workbook that was removed from the current tree. The purge procedure is documented in `supabase/SECURITY_CHECKLIST.md`. Treat that workbook as exposed until every Git ref has been rewritten and GitHub's cached views have been addressed.

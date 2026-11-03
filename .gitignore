@@ -1,9 +1,17 @@
-# Never commit client data
+# Never commit client data or generated drafts
 *.xlsx
 *.xlsm
 *.xls
 *.csv
-*.json
+*.docx
+*.eml
+*.zip
+*.backup
+*.sql.gz
+*.vbs
 backup*
+.env
+.env.*
+!.env.example
+supabase/.temp/
 .DS_Store
-
