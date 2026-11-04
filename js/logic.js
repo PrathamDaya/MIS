@@ -114,9 +114,17 @@
   }
 
   function isPrPending(caseRow = {}) {
+    if (toISO(caseRow.ud || caseRow.websiteUploadDate)) return false;
     const committee = toISO(caseRow.cd || caseRow.cdp || caseRow.committeeDate);
     const lastPr = toISO(caseRow.lp || caseRow.lastPrDate);
     return !!committee && (!lastPr || lastPr < committee);
+  }
+
+  function isPrDone(caseRow = {}) {
+    if (toISO(caseRow.ud || caseRow.websiteUploadDate)) return true;
+    const committee = toISO(caseRow.cd || caseRow.cdp || caseRow.committeeDate);
+    const lastPr = toISO(caseRow.lp || caseRow.lastPrDate);
+    return !!committee && !!lastPr && lastPr >= committee;
   }
 
   function committeeDateForDisplay(caseRow = {}) {
@@ -148,7 +156,7 @@
   function viewMembership(caseRow = {}) {
     const views = ["All", "Insights"];
     if (caseRow.ncd) views.push("NCD");
-    if (!caseRow.tr && !caseRow.w && !caseRow.dn && isPrPending(caseRow)) views.push("Deadlines");
+    if (!caseRow.tr && !caseRow.w && isPrPending(caseRow)) views.push("Deadlines");
     if (caseRow.inCommittee || caseRow.selectedForCommittee || caseRow.inBasket) views.push("Committee");
     return views;
   }
@@ -158,5 +166,5 @@
     return date ? new Intl.DateTimeFormat("en-IN", { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" }).format(date) : "–";
   }
 
-  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate });
+  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, isPrDone, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate });
 });

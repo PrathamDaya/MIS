@@ -13,6 +13,7 @@ test("transfer and NCD cases remain in All and NCD membership", () => {
 test("a Done case with no committee date has no PR pending or deadlines", () => {
   const done = { dn: true, cd: "", lp: "2026-11-03" };
   assert.equal(logic.isPrPending(done), false);
+  assert.equal(logic.isPrDone(done), false);
   assert.equal(logic.committeeDateForDisplay(done), "");
   assert.deepEqual(logic.deadlines(done), { ratingLetterToClient: "", pressReleaseToClient: "", websiteUpload: "" });
 });
@@ -35,6 +36,10 @@ test("committee date display is blank when PR is after or equal to committee", (
   assert.equal(logic.committeeDateForDisplay({ cd: "2026-11-03", lp: "2026-11-02" }), "2026-11-03");
   assert.equal(logic.isPrPending({ cd: "2026-11-03", lp: "2026-11-04" }), false);
   assert.equal(logic.isPrPending({ cd: "2026-11-03", lp: "2026-11-02" }), true);
+  assert.equal(logic.isPrDone({ cd: "2026-11-03", lp: "2026-11-04" }), true);
+  assert.equal(logic.isPrDone({ cd: "2026-11-03", lp: "2026-11-03" }), true);
+  assert.equal(logic.isPrDone({ cd: "2026-11-03", lp: "2026-11-02" }), false);
+  assert.equal(logic.isPrDone({ cd: "2026-11-03", ud: "2026-11-04" }), true);
 });
 
 test("working day deadlines skip weekends and configured holidays", () => {
