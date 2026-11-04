@@ -586,9 +586,9 @@ main{max-width:1440px;padding:24px 32px 104px}
 
 /* Reference-inspired controls: sliding tabs, fly-away action, theme switch and inset sign-in fields. */
 #primary-nav{position:relative;isolation:isolate}
-#primary-nav .nav-indicator{position:absolute;top:0;left:0;z-index:0;width:0;height:0;border-radius:9px;background:var(--card);box-shadow:var(--sh);pointer-events:none;transform:translate(0,0);transition:transform .55s cubic-bezier(.34,1.32,.64,1),width .55s cubic-bezier(.34,1.32,.64,1),height .55s cubic-bezier(.34,1.32,.64,1)}
+#primary-nav .nav-indicator{position:absolute;top:0;left:0;z-index:0;width:0;height:0;border-radius:999px;background:var(--ink);box-shadow:var(--sh);pointer-events:none;transform:translate(0,0)}
 #primary-nav button{position:relative;z-index:1;background:transparent;transition:color .2s var(--ease)}
-#primary-nav button.on{background:transparent;box-shadow:none;color:var(--ink)}
+#primary-nav button.on{background:transparent;box-shadow:none;color:var(--card)}
 #primary-nav button:not(.on):hover{color:var(--ink)}
 #primary-nav button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 #th.theme-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;text-align:left}
@@ -641,3 +641,70 @@ header nav .tag.badge-dots::before{opacity:1;transform:translate(-50%,-50%) scal
 dialog:has(.case-history-list){inset:0 0 0 auto;margin:0;width:min(560px,100vw);height:100dvh;max-height:100dvh;border-radius:18px 0 0 18px}.case-history-list{height:calc(100dvh - 130px);overflow:auto}
 
 .sync-retry{font-size:12px;padding:6px 9px}.sync-status[data-state="saving"]{color:var(--acc)}.sync-status[data-state="synced"]{color:var(--ok)}.sync-status[data-state="failed"],.sync-status[data-state="offline"]{color:var(--bad)}.loading-skeleton{display:grid;gap:8px;margin-top:16px}.skeleton-row{height:48px;border-radius:12px;background:linear-gradient(90deg,var(--panel),var(--line),var(--panel));background-size:200% 100%;animation:skeletonWave 1.4s ease-in-out infinite}.case,.mobile-case{content-visibility:auto;contain-intrinsic-size:auto 220px}@keyframes skeletonWave{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.skeleton-row{animation:none}}@media(max-width:760px){.sync-retry{order:6}}
+
+input[type=checkbox]{transition:transform .18s var(--ease)}
+input[type=checkbox]:checked{animation:checkbox-pop .2s cubic-bezier(.22,1,.36,1)}
+@keyframes checkbox-pop{0%{transform:scale(.78)}70%{transform:scale(1.14)}100%{transform:scale(1)}}
+@media(max-width:640px){
+  .btn,#primary-nav button,.menu button,input:not([type=checkbox]),select,.date-filter{min-height:44px}
+  .case-history{min-width:44px;min-height:44px;padding:6px}
+  .deadline-wrap .deadline-table td .btn{min-height:44px}
+  .mobile-case-flags label,.db label:has(input[type=checkbox]){min-height:44px}
+  input[type=checkbox]{width:24px;height:24px}
+}
+@media(prefers-reduced-motion:reduce){input[type=checkbox]{transition:none!important}input[type=checkbox]:checked{animation:none!important}}
+
+/* Phase 6: keep route motion short, composited and usable on narrow screens. */
+#app{view-transition-name:mis-app}
+::view-transition-old(mis-app){animation:mis-view-out .2s ease both}
+::view-transition-new(mis-app){animation:mis-view-in .24s cubic-bezier(.22,1,.36,1) both}
+@keyframes mis-view-out{to{opacity:0;transform:translateY(-12px)}}
+@keyframes mis-view-in{from{opacity:0;transform:translateY(12px)}}
+.view-enter,.view-enter>.ttl,.view-enter>.stats,.view-enter>.secondary-stats,.view-enter>.case-hint,.view-enter>.tw,.view-enter>.panel{animation:mis-enter .24s cubic-bezier(.22,1,.36,1) both}
+.view-enter>.ttl h2,.view-enter>.ttl p{animation:mis-enter .24s cubic-bezier(.22,1,.36,1) both}
+.view-enter>.stats .st,.view-enter>.secondary-stats .st{animation:mis-enter .24s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(25ms * var(--motion-index,0))}
+@keyframes mis-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.view-enter .tw tbody tr.r:nth-child(-n+10){animation:mis-enter .22s cubic-bezier(.22,1,.36,1) both}
+.view-enter .tw tbody tr.r:nth-child(1){animation-delay:0ms}
+.view-enter .tw tbody tr.r:nth-child(2){animation-delay:25ms}
+.view-enter .tw tbody tr.r:nth-child(3){animation-delay:50ms}
+.view-enter .tw tbody tr.r:nth-child(4){animation-delay:75ms}
+.view-enter .tw tbody tr.r:nth-child(5){animation-delay:100ms}
+.view-enter .tw tbody tr.r:nth-child(6){animation-delay:125ms}
+.view-enter .tw tbody tr.r:nth-child(7){animation-delay:150ms}
+.view-enter .tw tbody tr.r:nth-child(8){animation-delay:175ms}
+.view-enter .tw tbody tr.r:nth-child(9){animation-delay:200ms}
+.view-enter .tw tbody tr.r:nth-child(10){animation-delay:225ms}
+.btn:active:not(:disabled),header nav button:active,.st:active{transform:scale(.98)}
+.deadline-company{padding:0;border:0;background:none;color:var(--ink);font:inherit;font-weight:650;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+.deadline-company:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:3px}
+:root[data-theme=dark] .btn.p{background:var(--acc);border-color:var(--acc);color:#0e1116}
+:root[data-theme=dark] #sel .btn.p{color:#0e1116}
+header nav .tag{transition:min-width .24s var(--ease),width .24s var(--ease),height .24s var(--ease),padding .24s var(--ease),background-color .24s var(--ease),color .2s var(--ease)}
+header nav .tag::before{transition:opacity .16s ease,transform .24s cubic-bezier(.2,.8,.2,1)}
+header nav .tag.badge-dots::before{animation-duration:.24s}
+@media(max-width:640px){
+  header #primary-nav{flex-wrap:wrap;overflow:visible;overscroll-behavior:initial}
+  header #primary-nav button{flex:1 1 auto;min-width:0;white-space:normal}
+  main .tw:not(.deadline-wrap) .btn{min-height:44px}
+  .deadline-wrap{width:100%;max-width:100%;overflow:visible;border:0;background:transparent;box-shadow:none}
+  .deadline-wrap table.deadline-table{display:block;width:100%;min-width:0;table-layout:auto}
+  .deadline-wrap .deadline-table thead{display:none}
+  .deadline-wrap .deadline-table tbody{display:grid;gap:10px}
+  .deadline-wrap .deadline-table tbody tr.r{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;padding:11px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--sh)}
+  .deadline-wrap .deadline-table tbody td{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;align-content:start;width:auto!important;min-width:0;padding:7px;border:0;border-radius:9px;background:var(--bg);white-space:normal!important;overflow-wrap:anywhere}
+  .deadline-wrap .deadline-table tbody td::before{content:attr(data-label);color:var(--mut);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .deadline-wrap .deadline-table tbody td:nth-child(-n+2){grid-column:1/-1}
+  .deadline-wrap .deadline-table tbody td:first-child{display:flex;align-items:center;min-height:44px}
+  .deadline-wrap .deadline-table tbody td:nth-child(2){background:transparent}
+  .deadline-wrap .deadline-table td input[type=date]{min-height:44px;width:100%!important;font-size:16px}
+  .deadline-wrap .deadline-table td .btn{min-height:44px;margin:4px 0 0}
+  .deadline-wrap .deadline-table tbody tr:not(.r){display:block}
+  .deadline-wrap .deadline-table tbody td.empty{display:block;grid-column:1/-1}
+  html,body{max-width:100%;overflow-x:hidden}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  ::view-transition-old(mis-app),::view-transition-new(mis-app){animation:none!important}
+  .btn:active:not(:disabled),header nav button:active,.st:active{transform:none!important}
+}
