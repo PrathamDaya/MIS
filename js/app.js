@@ -154,6 +154,8 @@ const pick=(acc=".docx")=>new Promise(r=>{const f=$("#fi");f.accept=acc;f.value=
 const docKinds=[["note","Rating Note"],["letter","Rating Letter"],["pr","Press Release"]];
 function bytesB64(buf){const a=new Uint8Array(buf);let s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,Math.min(i+0x8000,a.length)));return btoa(s)}
 function b64Bytes(s){const x=atob(s),a=new Uint8Array(x.length);for(let i=0;i<x.length;i++)a[i]=x.charCodeAt(i);return a}
+const TEMPLATE_FIELDS=new Set(["company name","amount","amount words","previous rating lt","previous rating st","current rating lt","current rating st","action lt","action st","committee date","rating date","mail dates","last pr date","company short name","company acronym","short name","formerly known as","former name","funding basis","contact person","group head","analyst","phone","email"]);
+function missingTemplatePlaceholders(b64){const z=new PizZip(b64Bytes(b64)),missing=new Set();z.file(PARTS).forEach(f=>{const doc=new DOMParser().parseFromString(f.asText(),"application/xml");if(doc.getElementsByTagName("parsererror").length)throw new Error("unreadable template XML");for(const p of doc.getElementsByTagName("w:p")){const full=[...p.getElementsByTagName("w:t")].map(t=>t.textContent).join("");let m;PH.lastIndex=0;while((m=PH.exec(full))){const name=m[1].replace(/\s+/g," ").trim(),key=name.toLowerCase();if(!TEMPLATE_FIELDS.has(key))missing.add(name)}}});return[...missing].sort((a,b)=>a.localeCompare(b))}
 function templateDlg(){
  const dlg=$("#dlg"),saved=S.docTemplates||{};
  dlg.innerHTML='<div class="dh">Update Word templates</div><div class="db"><p class="f mut" style="margin:0 0 10px">Choose any template files you want to add or replace. The saved versions are shared with signed-in MIS users through your database.</p>'+
@@ -181,6 +183,8 @@ function generateDlg(){
   if(v==="templates")return templateDlg();const selected=docKinds.filter(([k])=>$("#gen-"+k).checked);if(!selected.length)return toast("Select at least one document type");
   const cases=S.bk.map(b=>({b:b,c:S.co.find(x=>x.id===b.id)})).filter(x=>x.c);if(!cases.length)return toast("Select at least one case first");
   const missing=selected.filter(([k])=>!(S.docTemplates||{})[k]);if(missing.length){dlg.close();return toast("Upload the "+missing.map(x=>x[1]).join(", ")+" template(s) with Update Word templates first")}
+  let unmatched;try{unmatched=selected.flatMap(([k,label])=>missingTemplatePlaceholders(S.docTemplates[k]).map(name=>({label,name})))}catch(err){return toast("Could not validate the Word template: "+err.message)}
+  if(unmatched.length){dlg.innerHTML='<div class="dh">Template placeholders need fields</div><div class="db"><p class="f">Add matching fields to the MIS or remove these placeholders before generating.</p><ul class="f">'+unmatched.map(x=>'<li><b>'+esc(x.label)+'</b>: {{ '+esc(x.name)+' }}</li>').join("")+'</ul><p class="f mut">No documents were generated, so these values will not be left blank.</p></div><div class="df"><button class="btn" value="x">Close</button><button class="btn p" value="templates">Update Word templates…</button></div>';return}
   try{
    const z=new PizZip();let count=0;
    for(const item of cases){
@@ -337,6 +341,7 @@ const mst=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{},k=["m1","r1","r2"].find(k=>D[
 const enc=t=>{const a=new TextEncoder().encode(t);let r="";for(let i=0;i<a.length;i+=8192)r+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(r)},wr=b=>b.replace(/.{1,76}/g,"$&\r\n"),eh=t=>/^[\x20-\x7e]*$/.test(t)?t:"=?UTF-8?B?"+enc(t)+"?=";
 function draft(c,k,to,cc){
  const M=ML(),sj=fT(String(TPL.subj||DEFAULT_TPL.subj).replace(/\{\{C\}\}/g,c.n),c);
+ c.ml=c.ml||{};const rootId=c.ml.firstMessageId||("<mis-"+c.id+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)+"@pratham-mis.invalid>");c.ml.firstMessageId=rootId;const messageId=k==="m1"?rootId:("<mis-"+c.id+"-"+k+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)+"@pratham-mis.invalid>");
   const baseText=fT(String(TPL.text||DEFAULT_TPL.text).replace(/\{\{C\}\}/g,c.n),c);
  const first="<html><body>"+esc(baseText).replace(/\r?\n/g,"<br>")+"</body></html>";
  const inner=h=>h.replace(/^[\s\S]*?<body[^>]*>/i,"").replace(/<\/body>[\s\S]*$/i,"");
@@ -347,33 +352,34 @@ function draft(c,k,to,cc){
  if(k==="m1"){html=first;plain=baseText}
  else{html="<html><body>"+rem(k)+(k==="r2"?["r1","m1"]:["m1"]).map(x=>hd(x)+(x==="m1"?inner(first):rem(x))).join("")+"</body></html>";plain=fT(M[k],c)}
  const B1="=_m"+Math.random().toString(36).slice(2),B2="=_a"+Math.random().toString(36).slice(2),part=(t,b)=>`--${B2}\r\nContent-Type: ${t}; charset="utf-8"\r\nContent-Transfer-Encoding: base64\r\n\r\n${wr(enc(b))}`;
- let e=`X-Unsent: 1\r\n${TPL.from?`From: ${TPL.from}\r\n`:""}To: ${to}\r\nCc: ${cc}\r\nSubject: ${eh((k==="m1"?"":"RE: ")+sj)}\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary="${B1}"\r\n\r\n--${B1}\r\nContent-Type: multipart/alternative; boundary="${B2}"\r\n\r\n${part("text/plain",plain)}${part("text/html",html)}--${B2}--\r\n`;
+ let e=`X-Unsent: 1\r\n${TPL.from?`From: ${TPL.from}\r\n`:""}To: ${to}\r\nCc: ${cc}\r\nSubject: ${eh((k==="m1"?"":"RE: ")+sj)}\r\nMessage-ID: ${messageId}\r\n${k==="m1"?"":"In-Reply-To: "+rootId+"\r\nReferences: "+rootId+"\r\n"}MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary="${B1}"\r\n\r\n--${B1}\r\nContent-Type: multipart/alternative; boundary="${B2}"\r\n\r\n${part("text/plain",plain)}${part("text/html",html)}--${B2}--\r\n`;
  if(k==="m1"&&TPL.att)e+=`--${B1}\r\nContent-Type: ${TPL.att.type}; name="${TPL.att.name}"\r\nContent-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename="${TPL.att.name}"\r\n\r\n${wr(TPL.att.b64)}`;
- return{name:`${KN[k]} - ${clean(c.n)}.eml`,data:e+`--${B1}--\r\n`,to,cc,subj:(k==="m1"?"":"RE: ")+sj,html,k,dt:(c.ml&&c.ml.d&&c.ml.d[k])||""}
+ return{name:`${KN[k]} - ${clean(c.n)}.eml`,data:e+`--${B1}--\r\n`,to,cc,subj:(k==="m1"?"":"RE: ")+sj,html,k,dt:(c.ml&&c.ml.d&&c.ml.d[k])||"",messageId,threadId:rootId}
 }
 function mark(c,k){c.ml=c.ml||{};c.ml.s=Object.assign({},c.ml.s,{[k]:iso(TODAY)})}
 function mailDlg(id){const c=co(id),m=c.ml||{},D=m.d||{},X=m.s||{},dlg=$("#dlg"),M=ML();dlg.dataset.id=id;
  dlg.innerHTML=`<div class="dh">Mails · ${esc(c.n)}</div><div class="db"><label class="f">To (client)<input id="mt" value="${esc(c.em||"")}"></label><label class="f">CC<input id="mc" value="${esc(M.cc)}"></label>
- ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">drafted ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Create draft</button></div>`).join("")}
- <p class="f mut" style="margin:0;font-size:12px">Pick a date for each mail. Create draft downloads a script that places the message in classic Outlook Drafts with any future delivery date set to 10:00. Open it, review the draft, and press Send to activate scheduling.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
- dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(to)c.em=to;const d=draft(c,k,to,cc);await out("MIS-Outlook-Draft-"+clean(c.n)+"-"+k+"-"+Date.now()+".vbs",vbs([d]));mark(c,k);save();render();return mailDlg(id)}
+ ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">drafted ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Download .eml draft</button></div>`).join("")}
+ <p class="f mut" style="margin:0;font-size:12px">Pick a date for each mail. Each download is an editable .eml draft and does not send. Use Mail wording to load the CC field from your original .eml template.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
+ dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(!to)return toast("Add the client email before creating a draft");if(!to.includes("@"))return toast("Enter a valid client email address");c.em=to;const d=draft(c,k,to,cc);await out(d.name,d.data);mark(c,k);save();render();return mailDlg(id)}
   if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(id)}}
-function mailSet(id,returnToBulk=false){
+function mailSet(id,returnToBulk=false,selectedIds=null){
  const M=ML(),dlg=$("#dlg"),K=[["r1","Reminder 1 wording",6],["r2","Reminder 2 wording",6]];
- dlg.innerHTML=`<div class="dh">Mail wording</div><div class="db">
- <label class="f">Default CC<input id="mx_cc" value="${esc(M.cc)}"></label>
- <label class="f">Checklist subject<input id="mx_subj" value="${esc(TPL.subj)}"></label>
- <label class="f">Checklist message<textarea id="mx_text" rows="7">${esc(TPL.text)}</textarea></label>
- ${K.map(([k,l,r])=>`<label class="f">${l}<textarea id="mx_${k}" rows="${r}">${esc(M[k])}</textarea></label>`).join("")}
- <p class="f mut" style="margin:0;font-size:12px">The checklist message and reminders are saved in this MIS and used in the Outlook drafts. Placeholders: {Company}, {Contact}, {Analyst}, {Date}, {Amount}; the subject also supports {{C}}.</p></div>
- <div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save wording</button></div>`;
- dlg.showModal();dlg.onclick=e=>{const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();
-  if(v==="x")return returnToBulk?bulkMail():mailDlg(id);
-  if(v==="r"){S.mail=null;TPL=Object.assign({},DEFAULT_TPL);save();return mailSet(id,returnToBulk)}
+ dlg.innerHTML='<div class="dh">Mail wording</div><div class="db">'+
+ '<label class="f">Default CC<input id="mx_cc" value="'+esc(M.cc)+'"></label>'+
+ '<label class="f">Load CC from original .eml template<input type="file" id="mail-eml-template" accept=".eml,message/rfc822"></label>'+
+ '<label class="f">Checklist subject<input id="mx_subj" value="'+esc(TPL.subj)+'"></label>'+
+ '<label class="f">Checklist message<textarea id="mx_text" rows="7">'+esc(TPL.text)+'</textarea></label>'+
+ K.map(([k,l,r])=>'<label class="f">'+l+'<textarea id="mx_'+k+'" rows="'+r+'">'+esc(M[k])+'</textarea></label>').join("")+
+ '<p class="f mut">The checklist and reminders are saved in this MIS. Placeholders: {Company}, {Contact}, {Analyst}, {Date}, {Amount}; the subject also supports {{C}}. Loading an .eml copies only its CC header; the file stays on this device.</p></div>'+
+ '<div class="df"><button class="btn" value="r">Restore defaults</button><button class="btn" value="x">Back</button><button class="btn p" value="ok">Save wording</button></div>';
+ dlg.showModal();dlg.onchange=async e=>{if(e.target.id!=="mail-eml-template")return;const f=e.target.files&&e.target.files[0];if(!f)return;try{const raw=await f.text(),headers=raw.split(/\r?\n\r?\n/,1)[0].replace(/\r?\n[ \t]+/g," "),match=headers.match(/^Cc:\s*(.*)$/im);if(!match||!match[1].trim())return toast("No CC header was found in that .eml file");$("#mx_cc").value=match[1].trim();toast("CC copied from the .eml template; choose Save wording")}catch(err){toast("Could not read the .eml template")}};
+ dlg.onclick=e=>{const v=e.target.closest("button")?.value;if(!v)return;e.preventDefault();
+  if(v==="x")return returnToBulk?bulkMail(selectedIds):mailDlg(id);
+  if(v==="r"){S.mail=null;TPL=Object.assign({},DEFAULT_TPL);save();return mailSet(id,returnToBulk,selectedIds)}
   S.mail={cc:$("#mx_cc").value.trim(),subj:$("#mx_subj").value,text:$("#mx_text").value,r1:$("#mx_r1").value,r2:$("#mx_r2").value};
-  TPL=Object.assign({},DEFAULT_TPL,S.mail);save();toast("Mail wording saved");return returnToBulk?bulkMail():mailDlg(id)}
-}
-function vbs(items){const ymd=dt=>dt&&dt>=iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att),attName=TPL.att?String(TPL.att.name||"attachment").replace(/[^a-zA-Z0-9._ -]/g,"_"):"x";
+  TPL=Object.assign({},DEFAULT_TPL,S.mail);save();toast("Mail wording saved");return returnToBulk?bulkMail(selectedIds):mailDlg(id)}
+}function vbs(items){const ymd=dt=>dt&&dt>=iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att),attName=TPL.att?String(TPL.att.name||"attachment").replace(/[^a-zA-Z0-9._ -]/g,"_"):"x";
  return`' Pratham MIS Tracker: creates ${items.length} draft(s) in your Outlook Drafts folder
 Option Explicit
 Dim T,C,S,H,A,ol,fso,tmp,cnt,xa,na,sa
@@ -436,15 +442,16 @@ function bulkMail(ids){
  dlg.innerHTML='<div class="dh">Mails for '+cs.length+' selected case(s)</div><div class="db"><label class="f">Default CC<input id="bc2" value="'+esc(M.cc)+'"></label>'+
  Object.entries(KN).map(([k,v])=>'<div class="f" style="display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center"><b>'+v+': date for all selected cases</b><input type="date" id="bd_'+k+'" value="'+((d0&&d0[k])||"")+'"></div>').join("")+
  '<label class="f">Create now<select id="bk2">'+Object.entries(KN).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'<option value="all" selected>All three mails for each company</option></select></label>'+
- '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; fill those in before creating drafts.</b> ':"")+'Click <b>Create Outlook drafts</b> to download one script for all selected mails. Open the script on this Windows computer to create the drafts in classic Outlook. Future dates are set to deliver at 10:00. Review each draft and press Send to activate scheduling. This script requires classic Outlook; the .eml ZIP is a manual fallback.</p></div>'+
- '<div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="s">Save dates</button><button class="btn" value="z">Download .eml ZIP</button><button class="btn p" value="v">Create Outlook drafts</button><button class="btn" value="x">Close</button></div>';
+ '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; update them before creating drafts.</b> ':"")+'Download .eml ZIP creates editable drafts and does not send. The classic Outlook script is an alternative that saves drafts to Outlook; review and send them yourself.</p></div>'+
+ '<div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="s">Save dates</button><button class="btn" value="v">Classic Outlook script</button><button class="btn p" value="z">Download .eml ZIP</button><button class="btn" value="x">Close</button></div>';
  dlg.showModal();dlg.onclick=async e=>{
-  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true);if(v==="t")return mailSet(cs[0].id,true);
+  const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true,cs.map(c=>c.id));
+  if(v!=="s"&&nm)return toast("Update the missing client email addresses before creating drafts");
   const before=cloneState(),dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
   if(v==="s"){save();dlg.close();render();return toastUndo("Mail dates set for all "+cs.length+" selected cases",before)}
   const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
   if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}
-  else await out("MIS-Outlook-Drafts-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
+  else if(v==="v")await out("MIS-Outlook-Drafts-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
   cs.forEach(c=>ks.forEach(x=>mark(c,x)));save();dlg.close();render();
   toastUndo(v==="z"?dr.length+" .eml files downloaded":"Prepared "+dr.length+" Outlook drafts. Run the downloaded script, then review and send them.",before)
  }
