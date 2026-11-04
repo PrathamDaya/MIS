@@ -15,6 +15,10 @@ The MIS signs in through Supabase Auth. Public sign-ups were already disabled du
 
 The migration only adds tables, policies, indexes, and trigger functions. It does not rename or remove any existing column. It also replaces the analyst-list function so it returns enabled analyst names rather than exposing auth email addresses.
 
+## Enable live updates
+
+The site also refreshes changes with 30-second polling if Realtime is not enabled. To turn on immediate updates, open **Database** → **Publications** → **supabase_realtime**, find `public.mis_state`, and enable it. Do not add `audit_log` or `allowed_users` to the publication. Supabase requires each subscribed table to be included in `supabase_realtime` before Postgres Changes can stream it.
+
 ## Check sign-ups and row security
 
 1. In **Authentication** → **Sign In / Providers**, confirm **Allow new users to sign up** is off.
