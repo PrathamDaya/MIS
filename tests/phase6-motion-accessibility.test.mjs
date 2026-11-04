@@ -24,7 +24,7 @@ function contrast(a, b) {
 
 test("view transitions and CSS fallback use brief 12px transform and opacity motion", () => {
   assert.match(app, /document\.startViewTransition\(update\)/);
-  assert.match(app, /function transitionView\(\)[\s\S]*?update\(\)\}/);
+  assert.match(app, /function transitionView\(\)[\s\S]*?update\(\);/);
   assert.match(app, /duration:250/);
   assert.doesNotMatch(app, /duration:520/);
   assert.match(css, /::view-transition-new\(mis-app\)\{animation:mis-view-in \.24s/);
@@ -56,7 +56,7 @@ test("reduced motion disables animations and primary button text stays legible i
   assert.match(css, /prefers-reduced-motion:reduce\)\{\s*\*,\*::before,\*::after\{animation:none!important;transition:none!important;scroll-behavior:auto!important\}/);
   assert.match(css, /:root\[data-theme=dark\] \.btn\.p\{background:var\(--acc\);border-color:var\(--acc\);color:#0e1116\}/);
   assert.match(css, /:root\[data-theme=dark\] #sel \.btn\.p\{color:#0e1116\}/);
-  assert.match(html, /css\/style\.css\?v=20261104-2/);
+  assert.match(html, /css\/style\.css\?v=20261104-3/);
 });
 
 test("key text, status, and accent pairs meet WCAG AA contrast in both themes", () => {
