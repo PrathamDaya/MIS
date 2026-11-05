@@ -83,3 +83,12 @@ test("calendar date helpers stay timezone independent", () => {
   assert.equal(logic.addCalendarYears("2024-02-29", 1), "2025-02-28");
   assert.equal(logic.todayInTimezone(new Date("2026-11-03T19:00:00Z")), "2026-11-04");
 });
+
+test("semicolon-separated client email addresses validate and format for mail drafts", () => {
+  const addresses = "first@example.com; second@example.org; FIRST@example.com";
+  assert.deepEqual(logic.parseEmailAddresses(addresses), ["first@example.com", "second@example.org"]);
+  assert.equal(logic.isValidEmailList(addresses), true);
+  assert.equal(logic.isValidEmailList("first@example.com; invalid-address"), false);
+  assert.equal(logic.formatEmailHeader(addresses), "first@example.com, second@example.org");
+  assert.equal(logic.formatOutlookRecipients(addresses), "first@example.com; second@example.org");
+});

@@ -166,5 +166,29 @@
     return date ? new Intl.DateTimeFormat("en-IN", { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" }).format(date) : "–";
   }
 
-  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, isPrDone, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate });
+  function parseEmailAddresses(value) {
+    const seen = new Set();
+    return String(value ?? "").split(/[;,]+/).map(address => address.trim()).filter(address => {
+      if (!address) return false;
+      const key = address.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function isValidEmailList(value) {
+    const addresses = parseEmailAddresses(value);
+    return addresses.length > 0 && addresses.every(address => /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(address));
+  }
+
+  function formatEmailHeader(value) {
+    return parseEmailAddresses(value).join(", ");
+  }
+
+  function formatOutlookRecipients(value) {
+    return parseEmailAddresses(value).join("; ");
+  }
+
+  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, isPrDone, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate, parseEmailAddresses, isValidEmailList, formatEmailHeader, formatOutlookRecipients });
 });
