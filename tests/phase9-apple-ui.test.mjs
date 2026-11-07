@@ -47,7 +47,7 @@ test("phone and laptop layouts preserve navigation, 44px targets, and safe-area 
 
 test("interface cache versions refresh only the visual layer and app code", () => {
   assert.match(html, /assets\/favicon\.svg\?v=20261107-2/);
-  assert.match(html, /css\/style\.css\?v=20261107-2/);
+  assert.match(html, /css\/style\.css\?v=20261107-3/);
   assert.match(html, /js\/app\.js\?v=20261107-2/);
   assert.match(html, /js\/logic\.js\?v=20261105-1/);
 });

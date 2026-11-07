@@ -57,7 +57,7 @@ test("reduced motion disables animations and primary button text stays legible i
   assert.match(css, /prefers-reduced-motion:reduce\)\{\s*\*,\*::before,\*::after\{animation:none!important;transition:none!important;scroll-behavior:auto!important\}/);
   assert.match(css, /:root\[data-theme=dark\] \.btn\.p\{background:var\(--acc\);border-color:var\(--acc\);color:#0e1116\}/);
   assert.match(css, /:root\[data-theme=dark\] #sel \.btn\.p\{color:#0e1116\}/);
-  assert.match(html, /css\/style\.css\?v=20261107-2/);
+  assert.match(html, /css\/style\.css\?v=20261107-3/);
 });
 
 test("key text, status, and accent pairs meet WCAG AA contrast in both themes", () => {

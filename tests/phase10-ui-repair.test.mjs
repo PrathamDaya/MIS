@@ -34,7 +34,7 @@ test("dark totals, consistent type, and long committee action labels remain read
 });
 
 test("visual updates use the refreshed asset version without changing data code", () => {
-  assert.match(html, /css\/style\.css\?v=20261107-2/);
+  assert.match(html, /css\/style\.css\?v=20261107-3/);
   assert.match(html, /js\/app\.js\?v=20261107-2/);
   assert.match(html, /js\/logic\.js\?v=20261105-1/);
 });
