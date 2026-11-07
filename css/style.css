@@ -873,7 +873,7 @@ header .header-actions .menu{z-index:40}
   header .header-actions #sync-retry{grid-column:3;grid-row:3;justify-self:end}
   header #primary-nav{display:none;grid-column:1/-1;grid-row:4;width:100%;max-width:100%;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}
   header.nav-open #primary-nav{display:flex}
-  header .more>.menu{position:absolute;display:flex;flex-direction:column;right:0;top:calc(100% + 8px);width:min(320px,calc(100vw - 20px));min-width:min(260px,calc(100vw - 20px));max-height:min(72dvh,540px);overflow:auto;padding:8px;box-shadow:0 18px 48px rgba(0,0,0,.2);animation:profile-menu-in .19s var(--ease) both}
+  header .more>.menu{position:absolute;display:flex;flex-direction:column;right:0;top:calc(100% + 8px);width:min(320px,calc(100vw - 32px));min-width:min(260px,calc(100vw - 32px));max-height:min(72dvh,540px);overflow:auto;padding:8px;box-shadow:0 18px 48px rgba(0,0,0,.2);animation:profile-menu-in .19s var(--ease) both}
   header .more>.menu .profile-card{grid-column:1/-1}
   header .more>.menu .menu-divider{flex:0 0 1px}
   header .more>.menu button{min-height:44px}

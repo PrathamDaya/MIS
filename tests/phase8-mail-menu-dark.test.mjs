@@ -46,7 +46,7 @@ test("dark mode preserves readable KPI, header and sign-in button text", () => {
 });
 
 test("asset cache versions include the email helpers and dark-mode fixes", () => {
-  assert.match(html, /css\/style\.css\?v=20261107-3/);
+  assert.match(html, /css\/style\.css\?v=20261107-4/);
   assert.match(html, /js\/logic\.js\?v=20261105-1/);
   assert.match(html, /js\/app\.js\?v=20261107-2/);
 });
