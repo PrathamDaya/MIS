@@ -21,6 +21,8 @@ test("navigation toggle opens only the tab bar, separately from the account menu
   assert.match(handler, /headerEl\.classList\.toggle\("nav-open"\)/);
   assert.doesNotMatch(handler, /mobileActions\.open/);
   assert.match(css, /@media\(max-width:760px\)[\s\S]*header \.more\{display:block[\s\S]*header \.more summary\{display:grid/);
+  assert.match(css, /header \.header-actions #add\{grid-column:1\/-1;grid-row:2/);
+  assert.match(css, /header \.header-actions \.more\{grid-column:3;grid-row:1/);
 });
 
 test("dark totals, consistent type, and long committee action labels remain readable", () => {
