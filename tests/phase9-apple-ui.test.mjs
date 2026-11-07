@@ -42,12 +42,12 @@ test("phone and laptop layouts preserve navigation, 44px targets, and safe-area 
   assert.match(css, /@media\(max-width:380px\)/);
   assert.match(css, /@media\(min-width:1101px\)[\s\S]*header\{display:grid/);
   assert.match(css, /\.btn,#primary-nav button,\.menu button,input:not\(\[type=checkbox\]\),select,\.date-filter\{min-height:44px\}/);
-  assert.match(html, /id="nav-toggle"[^>]*aria-controls="primary-nav mobile-actions"/);
+  assert.match(html, /id="nav-toggle"[^>]*aria-controls="primary-nav"/);
 });
 
 test("interface cache versions refresh only the visual layer and app code", () => {
-  assert.match(html, /assets\/favicon\.svg\?v=20261107-1/);
-  assert.match(html, /css\/style\.css\?v=20261107-1/);
-  assert.match(html, /js\/app\.js\?v=20261107-1/);
+  assert.match(html, /assets\/favicon\.svg\?v=20261107-2/);
+  assert.match(html, /css\/style\.css\?v=20261107-2/);
+  assert.match(html, /js\/app\.js\?v=20261107-2/);
   assert.match(html, /js\/logic\.js\?v=20261105-1/);
 });

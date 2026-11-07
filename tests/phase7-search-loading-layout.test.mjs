@@ -35,6 +35,6 @@ test("login shows progress immediately and cold loads state in one response afte
 });
 
 test("asset versions refresh the fixed table and search handler", () => {
-  assert.match(html, /css\/style\.css\?v=20261107-1/);
-  assert.match(html, /js\/app\.js\?v=20261107-1/);
+  assert.match(html, /css\/style\.css\?v=20261107-2/);
+  assert.match(html, /js\/app\.js\?v=20261107-2/);
 });
