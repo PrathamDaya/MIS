@@ -22,15 +22,16 @@ function contrast(a, b) {
   return (high + 0.05) / (low + 0.05);
 }
 
-test("view transitions and CSS fallback use brief 12px transform and opacity motion", () => {
+test("view transitions use short motion and leave case rows still for fast scanning", () => {
   assert.match(app, /document\.startViewTransition\(update\)/);
   assert.match(app, /function transitionView\(\)[\s\S]*?update\(\);/);
-  assert.match(app, /duration:250/);
-  assert.doesNotMatch(app, /duration:520/);
+  assert.match(app, /duration:280,easing:"cubic-bezier\(\.2,1\.25,\.4,1\)"/);
+  assert.match(app, /duration:\.2,ease:"easeOut"/);
+  assert.doesNotMatch(app, /Array\.from\(view\.querySelectorAll\("tbody tr\.r"\)\)/);
   assert.match(css, /::view-transition-new\(mis-app\)\{animation:mis-view-in \.24s/);
   assert.match(css, /@keyframes mis-view-in\{from\{opacity:0;transform:translateY\(12px\)\}\}/);
-  assert.match(css, /\.view-enter \.tw tbody tr\.r:nth-child\(-n\+10\)\{animation:mis-enter \.22s/);
-  assert.match(css, /\.view-enter \.tw tbody tr\.r:nth-child\(10\)\{animation-delay:225ms\}/);
+  assert.match(css, /\.view-enter \.tw tbody tr\.r:nth-child\(-n\+10\)\{animation:none!important\}/);
+  assert.match(css, /@keyframes mis-enter\{from\{opacity:0;transform:translateY\(7px\)\}/);
 });
 
 test("Badge Pop returns its count when inactive and honors reduced motion", () => {
@@ -56,7 +57,7 @@ test("reduced motion disables animations and primary button text stays legible i
   assert.match(css, /prefers-reduced-motion:reduce\)\{\s*\*,\*::before,\*::after\{animation:none!important;transition:none!important;scroll-behavior:auto!important\}/);
   assert.match(css, /:root\[data-theme=dark\] \.btn\.p\{background:var\(--acc\);border-color:var\(--acc\);color:#0e1116\}/);
   assert.match(css, /:root\[data-theme=dark\] #sel \.btn\.p\{color:#0e1116\}/);
-  assert.match(html, /css\/style\.css\?v=20261105-1/);
+  assert.match(html, /css\/style\.css\?v=20261107-1/);
 });
 
 test("key text, status, and accent pairs meet WCAG AA contrast in both themes", () => {

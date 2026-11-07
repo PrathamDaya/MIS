@@ -32,7 +32,7 @@ test("client email lists reach checklist and Outlook drafts as multiple recipien
 test("sign in and sign out live inside the three-dot actions menu", () => {
   const menu = html.match(/<div class="menu">([\s\S]*?)<\/div><\/details>/)?.[1] ?? "";
   const headerBeforeMenu = html.match(/<header>([\s\S]*?)<div class="menu">/)?.[1] ?? "";
-  assert.match(menu, /id="auth-action" type="button">Sign in<\/button>/);
+  assert.match(menu, /id="auth-action" type="button"[\s\S]*?<span class="menu-label">Sign in<\/span><\/button>/);
   assert.doesNotMatch(headerBeforeMenu, /id="auth-action"/);
   assert.equal((html.match(/id="auth-action"/g) ?? []).length, 1);
 });
@@ -46,7 +46,7 @@ test("dark mode preserves readable KPI, header and sign-in button text", () => {
 });
 
 test("asset cache versions include the email helpers and dark-mode fixes", () => {
-  assert.match(html, /css\/style\.css\?v=20261105-1/);
+  assert.match(html, /css\/style\.css\?v=20261107-1/);
   assert.match(html, /js\/logic\.js\?v=20261105-1/);
-  assert.match(html, /js\/app\.js\?v=20261105-1/);
+  assert.match(html, /js\/app\.js\?v=20261107-1/);
 });
