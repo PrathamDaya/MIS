@@ -1,8 +1,8 @@
 # Outlook draft options
 
-The default mail flow creates editable .eml drafts in the browser. It does not send messages. In **Mail wording**, load your original .eml file with **Load CC from original .eml template**, then choose **Save wording**; the MIS copies the CC header only. Each draft uses that saved CC value and includes the X-Unsent: 1 header. Reminder drafts include Message-ID, In-Reply-To, and References headers pointing to the company's first checklist draft. Check the threading with one test company before using it for client mail.
+The default mail flow creates editable .eml drafts in the browser. It does not send messages. In **Mail wording**, load your original `.eml` template, then choose **Save wording**; the MIS keeps its subject, formatted body, CC, inline images, and attachments (including the questionnaire workbook). Checklist drafts personalize the company name. Reminder drafts quote the checklist and include Message-ID, In-Reply-To, and References headers so they stay in its thread. Set dates for the checklist and two follow-ups, then create them one at a time in order.
 
-Bulk EML downloads apply one mail date per mail type to all selected cases and save those dates in the MIS. EML drafts are not automatically scheduled for future delivery; use the classic Outlook script if you need Outlook's deferred-delivery setting.
+Bulk mail applies one mail date per type to all selected cases and saves those dates in the MIS. EML drafts are not automatically scheduled for future delivery; use the classic Outlook script if you need Outlook's deferred-delivery setting.
 
 The existing Windows script option creates drafts in classic Outlook. Review each draft and press Send yourself. A browser cannot place a message in Outlook's Drafts folder without a supported integration.
 
