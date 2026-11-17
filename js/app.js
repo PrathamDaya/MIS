@@ -534,7 +534,7 @@ If selectedAccount Is Nothing Then
 MsgBox "That email address is not an Outlook sending account. Nothing was sent."&vbCrLf&accountList,16
 WScript.Quit
 End If
-answer=MsgBox("This will send "&${items.length}&" email(s) from "&senderAddress&" and copy O. P. Jain (opjain@infomerics.com)."&vbCrLf&vbCrLf&"Continue? Future-dated emails will be queued for 10:00 on their selected date. Keep Classic Outlook open and connected.",vbYesNo+vbQuestion+vbDefaultButton2,"Confirm Outlook send")
+answer=MsgBox("This will send " & CStr(${items.length}) & " email(s) from " & senderAddress & " and copy O. P. Jain (opjain@infomerics.com)." & vbCrLf & vbCrLf & "Continue? Future-dated emails will be queued for 10:00 on their selected date. Keep Classic Outlook open and connected.",vbYesNo+vbQuestion+vbDefaultButton2,"Confirm Outlook send")
 If answer<>vbYes Then
 MsgBox "Cancelled. Nothing was sent.",64
 WScript.Quit
