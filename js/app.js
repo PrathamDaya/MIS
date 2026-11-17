@@ -347,7 +347,7 @@ function loadMailSettings(){TPL=Object.assign({},DEFAULT_TPL,S.mail||{});if(TPL.
 const ML=()=>Object.assign({cc:TPL.cc||"",r1:"Dear {Contact},\n\nThis is a gentle reminder to our mail below regarding the information required for the surveillance of {Company}. Kindly share the details at the earliest.\n\nRegards,",r2:"Dear {Contact},\n\nThis is a second reminder to our mail below. Kindly share the information required for the surveillance of {Company} at the earliest, failing which the rating may be reviewed on the basis of the information available.\n\nRegards,"},S.mail||{});
 const fT=(t,c)=>t.replace(/\{(\w+)\}/g,(m,k)=>({Company:c.n,Contact:c.p||"Sir/Madam",Analyst:c.an,Date:fd(iso(TODAY)),Amount:c.a??""})[k]??m);
 const dueM=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{};return["m1","r1","r2"].filter(k=>D[k]&&!X[k]&&D[k]<=iso(TODAY))};
-const mst=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{},k=["m1","r1","r2"].find(k=>D[k]&&!X[k]);if(k)return`<span class="tag ${D[k]<=iso(TODAY)?"warn":"nu"}">${SH[k]} ${fd(D[k])}</span>`;const l=["r2","r1","m1"].find(k=>X[k]);return l?`<span class="tag ok">${SH[l]} drafted</span>`:""};
+const mst=c=>{const m=c.ml||{},D=m.d||{},X=m.s||{},k=["m1","r1","r2"].find(k=>D[k]&&!X[k]);if(k)return`<span class="tag ${D[k]<=iso(TODAY)?"warn":"nu"}">${SH[k]} ${fd(D[k])}</span>`;const l=["r2","r1","m1"].find(k=>X[k]);return l?`<span class="tag ok">${SH[l]} prepared</span>`:""};
 const enc=t=>{const a=new TextEncoder().encode(t);let r="";for(let i=0;i<a.length;i+=8192)r+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(r)},wr=b=>b.replace(/.{1,76}/g,"$&\r\n"),eh=t=>/^[\x20-\x7e]*$/.test(t)?t:"=?UTF-8?B?"+enc(t)+"?=";
 function draft(c,k,to,cc){
  loadMailSettings();const M=ML(),toHeader=window.MISLogic.formatEmailHeader(to),outlookTo=window.MISLogic.formatOutlookRecipients(to),sj=fT(String(TPL.subj||DEFAULT_TPL.subj).replace(/Company Name/g,c.n).replace(/\bCompany\b/g,c.n).replace(/\{\{C\}\}/g,c.n),c);
@@ -372,8 +372,8 @@ function draft(c,k,to,cc){
 function mark(c,k){c.ml=c.ml||{};c.ml.s=Object.assign({},c.ml.s,{[k]:iso(TODAY)})}
 function mailDlg(id){const c=co(id),m=c.ml||{},D=m.d||{},X=m.s||{},dlg=$("#dlg"),M=ML();dlg.dataset.id=id;
  dlg.innerHTML=`<div class="dh">Mails · ${esc(c.n)}</div><div class="db"><label class="f">To (client)<input id="mt" inputmode="email" value="${esc(c.em||"")}" placeholder="name@example.com; team@example.com"></label><label class="f">CC<input id="mc" value="${esc(M.cc)}"></label><p class="f mut email-hint">Use semicolons between client addresses. The checklist draft will include each address.</p>
- ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">drafted ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Download .eml draft</button></div>`).join("")}
- <p class="f mut" style="margin:0;font-size:12px">Set dates for the checklist and each follow-up. Create the checklist first, then reminders one by one; reminders stay threaded with the checklist. Use Mail wording to load your complete .eml template and its workbook. EML downloads are editable drafts; the Outlook script can schedule delivery.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
+ ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">prepared ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Download .eml draft</button></div>`).join("")}
+ <p class="f mut" style="margin:0;font-size:12px">Set dates for the checklist and each follow-up. Create the checklist first, then reminders one by one; reminders stay threaded with the checklist. Use Mail wording to load your complete .eml template and its workbook. EML downloads are editable drafts; use the Classic Outlook script to send messages from Outlook and queue dated messages for 10:00.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
  dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(!to)return toast("Add the client email before creating a draft");if(!window.MISLogic.isValidEmailList(to))return toast("Enter valid client email address(es), separated by semicolons");c.em=to;const d=draft(c,k,to,cc);await out(d.name,d.data);mark(c,k);save();render();return mailDlg(id)}
   if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(id)}}
 function parseEml(raw){
@@ -407,9 +407,9 @@ function mailSet(id,returnToBulk=false,selectedIds=null){
   S.mail={cc:$("#mx_cc").value.trim(),subj:$("#mx_subj").value,text:$("#mx_text").value,html:TPL.html||"",signature,att:TPL.att||null,r1:$("#mx_r1").value,r2:$("#mx_r2").value};
   TPL=Object.assign({},DEFAULT_TPL,S.mail);save();toast("Mail wording saved");return returnToBulk?bulkMail(selectedIds):mailDlg(id)}
 }function vbs(items){const ymd=dt=>dt&&dt>=iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0",ch=(x,v)=>{const b=enc(v);let o=x+'=""\r\n';for(let i=0;i<b.length;i+=200)o+=`${x}=${x}&"${b.slice(i,i+200)}"\r\n`;return o},need=items.some(i=>i.k==="m1"&&TPL.att),attName=TPL.att?String(TPL.att.name||"attachment").replace(/[^a-zA-Z0-9._ -]/g,"_"):"x";
- return`' Pratham MIS Tracker: creates ${items.length} draft(s) in your Outlook Drafts folder
+ return`' Pratham MIS Tracker: sends ${items.length} email(s) through Classic Outlook
 Option Explicit
-Dim T,C,S,H,A,ol,fso,tmp,cnt,xa,na,sa
+Dim T,C,S,H,A,ol,fso,tmp,cnt,failed,xa,na,sa,accounts,candidate,selectedAccount,smtp,senderAddress,firstAddress,accountList,accountCount,answer,ccText,failList
 Function D(b)
 Dim x,n,s
 Set x=CreateObject("MSXML2.DOMDocument")
@@ -427,16 +427,59 @@ D=s.ReadText
 s.Close
 End Function
 Sub Mk(withAtt,y,mo,dy)
-Dim m
+Dim m,ccText
+On Error Resume Next
+Err.Clear
 Set m=ol.CreateItem(0)
+If Err.Number<>0 Then
+failed=failed+1
+If failed<=5 Then failList=failList&vbCrLf&D(S)&": Outlook could not create the message: "&Err.Description
+Err.Clear
+On Error GoTo 0
+Exit Sub
+End If
 m.To=D(T)
-m.CC=D(C)
+ccText=Trim(D(C))
+If InStr(1,LCase(Replace(ccText," ","")),"opjain@infomerics.com",vbTextCompare)=0 Then
+If Len(ccText)>0 Then ccText=ccText&"; "
+ccText=ccText&"opjain@infomerics.com"
+End If
+m.CC=ccText
 m.Subject=D(S)
 m.HTMLBody=D(H)
 If withAtt Then m.Attachments.Add tmp
 If y>0 Then m.DeferredDeliveryTime=DateSerial(y,mo,dy)+TimeSerial(10,0,0)
+If Err.Number<>0 Then
+failed=failed+1
+If failed<=5 Then failList=failList&vbCrLf&D(S)&": Outlook could not prepare the message: "&Err.Description
+Err.Clear
 m.Save
+Err.Clear
+On Error GoTo 0
+Exit Sub
+End If
+Err.Clear
+Set m.SendUsingAccount=selectedAccount
+If Err.Number<>0 Then
+failed=failed+1
+If failed<=5 Then failList=failList&vbCrLf&D(S)&": Outlook could not select the sender account: "&Err.Description
+Err.Clear
+m.Close 1
+On Error GoTo 0
+Exit Sub
+End If
+Err.Clear
+m.Send
+If Err.Number<>0 Then
+failed=failed+1
+If failed<=5 Then failList=failList&vbCrLf&D(S)&": Outlook rejected Send: "&Err.Description
+Err.Clear
+m.Save
+Err.Clear
+Else
 cnt=cnt+1
+End If
+On Error GoTo 0
 End Sub
 On Error Resume Next
 Set ol=CreateObject("Outlook.Application")
@@ -445,9 +488,62 @@ MsgBox "Could not start classic Outlook. Please open Outlook and run this file a
 WScript.Quit
 End If
 On Error GoTo 0
+Set accounts=ol.Session.Accounts
+accountCount=0
+accountList=""
+firstAddress=""
+For Each candidate In accounts
+smtp=""
+On Error Resume Next
+smtp=CStr(candidate.SmtpAddress)
+If Err.Number=0 Then
+smtp=Trim(smtp)
+If Len(smtp)>0 Then
+accountCount=accountCount+1
+If Len(firstAddress)=0 Then firstAddress=smtp
+accountList=accountList&vbCrLf&smtp
+End If
+End If
+Err.Clear
+On Error GoTo 0
+Next
+If accountCount=0 Then
+MsgBox "No Outlook sending account with an email address was found. Nothing was sent.",16
+WScript.Quit
+End If
+If accountCount=1 Then
+senderAddress=firstAddress
+Else
+senderAddress=Trim(InputBox("Enter the exact sender email address to use:"&vbCrLf&accountList,"Choose Outlook sender"))
+End If
+If Len(senderAddress)=0 Then
+MsgBox "No sender account was selected. Nothing was sent.",64
+WScript.Quit
+End If
+Set selectedAccount=Nothing
+For Each candidate In accounts
+smtp=""
+On Error Resume Next
+smtp=CStr(candidate.SmtpAddress)
+If Err.Number=0 And LCase(Trim(smtp))=LCase(senderAddress) Then Set selectedAccount=candidate
+Err.Clear
+On Error GoTo 0
+If Not selectedAccount Is Nothing Then Exit For
+Next
+If selectedAccount Is Nothing Then
+MsgBox "That email address is not an Outlook sending account. Nothing was sent."&vbCrLf&accountList,16
+WScript.Quit
+End If
+answer=MsgBox("This will send "&${items.length}&" email(s) from "&senderAddress&" and copy O. P. Jain (opjain@infomerics.com)."&vbCrLf&vbCrLf&"Continue? Future-dated emails will be queued for 10:00 on their selected date. Keep Classic Outlook open and connected.",vbYesNo+vbQuestion+vbDefaultButton2,"Confirm Outlook send")
+If answer<>vbYes Then
+MsgBox "Cancelled. Nothing was sent.",64
+WScript.Quit
+End If
 Set fso=CreateObject("Scripting.FileSystemObject")
 tmp=fso.GetSpecialFolder(2)&Chr(92)&"${attName}"
-${need?ch("A",TPL.att.b64.replace(/^/,""))+`Set xa=CreateObject("MSXML2.DOMDocument")
+${need?ch("A",TPL.att.b64.replace(/^/,""))+`On Error Resume Next
+Err.Clear
+Set xa=CreateObject("MSXML2.DOMDocument")
 Set na=xa.createElement("b")
 na.dataType="bin.base64"
 na.text=A
@@ -456,10 +552,19 @@ sa.Type=1
 sa.Open
 sa.Write na.nodeTypedValue
 sa.SaveToFile tmp,2
+If Err.Number<>0 Then
+MsgBox "Could not prepare the Excel attachment. Nothing was sent.",16
+WScript.Quit
+End If
 sa.Close
+On Error GoTo 0
 `:""}${items.map(i=>ch("T",i.to)+ch("C",i.cc)+ch("S",i.subj)+ch("H",i.html)+"Mk "+(i.k==="m1"&&TPL.att?"True":"False")+","+ymd(i.dt)+"\r\n").join("")}On Error Resume Next
 If fso.FileExists(tmp) Then fso.DeleteFile tmp
-MsgBox cnt&" draft(s) saved in your Outlook Drafts folder. Review them and press Send: mails with a date are held and delivered on that date at 10:00 (Outlook must be open).",64
+If failed=0 Then
+MsgBox cnt&" email(s) submitted to Outlook from "&senderAddress&". O. P. Jain was included in CC. Future-dated email is queued for 10:00 on its selected date.",64
+Else
+MsgBox cnt&" email(s) submitted; "&failed&" could not be sent. Failed messages were saved as Outlook drafts when possible:"&failList&vbCrLf&vbCrLf&"Check Outlook Drafts and Outbox.",48
+End If
 `.replace(/\r?\n/g,"\r\n")}
 const ymdS=dt=>dt&&dt>iso(TODAY)?[+dt.slice(0,4),+dt.slice(5,7),+dt.slice(8,10)].join(","):"0,0,0";
 const payload=it=>{const L=[];if(it.some(i=>i.k==="m1")&&TPL.att)L.push("ATT|"+TPL.att.name+"|"+TPL.att.b64);it.forEach(i=>L.push(["MAIL",i.k,enc(i.toHeader||i.to),enc(i.cc),enc(i.subj),enc(i.html),ymdS(i.dt)].join("|")));return L.join("\r\n")+"\r\n"};
@@ -469,8 +574,8 @@ function bulkMail(ids){
  dlg.innerHTML='<div class="dh">Mails for '+cs.length+' selected case(s)</div><div class="db"><label class="f">Default CC<input id="bc2" value="'+esc(M.cc)+'"></label>'+
  Object.entries(KN).map(([k,v])=>'<div class="f" style="display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center"><b>'+v+': date for all selected cases</b><input type="date" id="bd_'+k+'" value="'+((d0&&d0[k])||"")+'"></div>').join("")+
  '<label class="f">Create now<select id="bk2">'+Object.entries(KN).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'<option value="all" selected>All three mails for each company</option></select></label>'+
- '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; update them before creating drafts.</b> ':"")+(bad?'<b style="color:var(--bad)">'+bad+' case(s) have invalid client email address(es); update them before creating drafts.</b> ':"")+'Separate multiple client addresses with semicolons; each address is included in the To field. Download .eml ZIP creates editable drafts and does not send. The classic Outlook script is an alternative that saves drafts to Outlook; review and send them yourself.</p></div>'+
- '<div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="s">Save dates</button><button class="btn" value="v">Classic Outlook script</button><button class="btn p" value="z">Download .eml ZIP</button><button class="btn" value="x">Close</button></div>';
+ '<p class="f mut" style="margin:0;font-size:12px">'+(nm?'<b style="color:var(--bad)">'+nm+' case(s) have no client email; update them before creating drafts.</b> ':"")+(bad?'<b style="color:var(--bad)">'+bad+' case(s) have invalid client email address(es); update them before creating drafts.</b> ':"")+'Separate multiple client addresses with semicolons; each address is included in the To field. Download .eml ZIP creates editable drafts and does not send. The classic Outlook script selects a sender account once, copies O. P. Jain, and sends after one confirmation. Future-dated emails are queued for 10:00.</p></div>'+
+ '<div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="s">Save dates</button><button class="btn" value="v">Classic Outlook script · send after confirmation</button><button class="btn p" value="z">Download .eml ZIP</button><button class="btn" value="x">Close</button></div>';
  dlg.showModal();dlg.onclick=async e=>{
   const v=e.target.tagName==="BUTTON"?e.target.value:"";if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(cs[0].id,true,cs.map(c=>c.id));
   if(v!=="s"&&nm)return toast("Update the missing client email addresses before creating drafts");if(v!=="s"&&bad)return toast("Fix invalid client email address(es) before creating drafts");
@@ -478,9 +583,9 @@ function bulkMail(ids){
   if(v==="s"){save();dlg.close();render();return toastUndo("Mail dates set for all "+cs.length+" selected cases",before)}
   const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k],cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
   if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}
-  else if(v==="v")await out("MIS-Outlook-Drafts-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
+  else if(v==="v")await out("MIS-Outlook-Send-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
   cs.forEach(c=>ks.forEach(x=>mark(c,x)));save();dlg.close();render();
-  toastUndo(v==="z"?dr.length+" .eml files downloaded":"Prepared "+dr.length+" Outlook drafts. Run the downloaded script, then review and send them.",before)
+  toastUndo(v==="z"?dr.length+" .eml files downloaded":"Created a Classic Outlook send script for "+dr.length+" emails. Run it and confirm once to send.",before)
  }
 }
 async function zipDue(){const invalid=list().filter(c=>dueM(c).length&&c.em&&!window.MISLogic.isValidEmailList(c.em)).length;if(invalid)return toast("Fix invalid client email address(es) for due cases before creating drafts");const before=cloneState(),z=new PizZip();let n=0,nm=0;for(const c of list()){for(const k of dueM(c)){if(!c.em)nm++;const d=draft(c,k,c.em||"",ML().cc);z.file(d.name,d.data);mark(c,k);n++}}

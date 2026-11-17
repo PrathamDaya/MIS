@@ -1,23 +1,17 @@
-# Outlook draft options
+# Outlook mail options
 
-The default mail flow creates editable .eml drafts in the browser. It does not send messages. In **Mail wording**, load your original `.eml` template, then choose **Save wording**; the MIS keeps its subject, formatted body, CC, inline images, and attachments (including the questionnaire workbook). Checklist drafts personalize the company name. Reminder drafts quote the checklist and include Message-ID, In-Reply-To, and References headers so they stay in its thread. Set dates for the checklist and two follow-ups, then create them one at a time in order. The **Personal signature** editor accepts rich paste with tables and images or loads the Outlook `Signature` block from an `.eml`. It is saved in each analyst’s own MIS account and replaces the template’s signature block in generated mail.
+The default mail flow creates editable .eml drafts in the browser. It does not send messages. In **Mail wording**, load your original .eml template, then choose **Save wording**; the MIS keeps its subject, formatted body, CC, inline images, and attachments, including the questionnaire workbook. Checklist drafts personalize the company name. Reminder drafts quote the checklist and include threading headers so they stay in its thread. Set dates for the checklist and follow-ups, then create them in order. The **Personal signature** editor accepts rich paste with tables and images or loads the Outlook signature block from an .eml. Each analyst’s signature is saved in that analyst’s own MIS account.
 
-Bulk mail applies one mail date per type to all selected cases and saves those dates in the MIS. EML drafts are not automatically scheduled for future delivery; use the classic Outlook script if you need Outlook's deferred-delivery setting.
+Bulk mail applies one mail date per type to all selected cases and saves those dates in the MIS. EML files remain editable drafts and are not scheduled for delivery.
 
-The existing Windows script option creates drafts in classic Outlook. Review each draft and press Send yourself. A browser cannot place a message in Outlook's Drafts folder without a supported integration.
+## Send through Classic Outlook
+
+Choose **Classic Outlook script** to download a Windows script for the selected messages. Run it with Classic Outlook installed and configured. If Outlook has one sending account, the script uses it. If Outlook has multiple accounts, it asks for the exact sender email once and uses that account for every message.
+
+The script includes O. P. Jain (opjain@infomerics.com) in CC unless the address is already present. It shows a confirmation with the message count before sending. It sends messages in order; messages with a selected date are queued for 10:00 on that date. Keep Outlook open and connected for scheduled messages. The completion dialog reports messages handed to Outlook and any messages that could not be submitted; failed messages are saved as drafts when possible.
+
+Outlook or your organisation’s security policy may still show a programmatic-send warning. Follow that prompt according to your organisation’s policy; the script does not bypass it. The script runs locally and does not store Outlook credentials in the MIS.
 
 ## Optional Microsoft Graph integration
 
-Graph is documented as a future option and is not implemented or enabled in this static GitHub Pages build. Enabling it requires both code integration and an Entra app registration in the organisation's tenant; an administrator may need to approve delegated mail permissions. Never put a client secret in this repository or in browser code.
-
-Setup steps for a future Graph integration:
-
-1. In the Microsoft Entra admin center, create a single-tenant app registration for the MIS.
-2. Add the production GitHub Pages URL as a Single-page application redirect URI.
-3. Configure MSAL.js with the tenant ID, application ID, and exact redirect URI using a pinned, integrity-checked dependency.
-4. Request only delegated User.Read and Mail.ReadWrite permissions; ask the organisation's administrator to approve them if required. Do not request Mail.Send for a drafts-only workflow.
-5. After popup sign-in, create the checklist draft with POST /me/messages. Store its Graph message ID on the selected case after a successful response.
-6. Create each reminder with POST /me/messages/{first-message-id}/createReply, then update the reply's body and save it as a draft. Keep the first message ID with the company so reminders reply to that same checklist thread.
-7. Keep Graph draft creation behind an explicit Create Outlook drafts action. Do not send automatically. Continue to offer .eml downloads if sign-in is cancelled or Graph is unavailable.
-
-Before enabling it, test the redirect URI, admin consent, draft creation, and reminder threading in a non-production mailbox. The .eml and classic Outlook options remain the available paths until the tenant setup and implementation are completed.
+Graph is not implemented in this static GitHub Pages build. Direct browser-based sending through Graph would require an Entra app registration and organisation approval for delegated mail permissions. Never put a client secret in this repository or browser code.
