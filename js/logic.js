@@ -120,6 +120,34 @@
     return !!committee && (!lastPr || lastPr < committee);
   }
 
+  function isDeadlinePending(caseRow = {}, today = todayInTimezone()) {
+    if (caseRow.tr || caseRow.w || toISO(caseRow.ud || caseRow.websiteUploadDate)) return false;
+    const committee = toISO(caseRow.cd || caseRow.cdp || caseRow.committeeDate);
+    const current = toISO(today);
+    if (!committee || !current || committee > current) return false;
+    return !!caseRow.cm || isPrPending(caseRow);
+  }
+
+  function addCalendarDays(dateValue, count) {
+    const date = dateFromISO(dateValue);
+    if (!date || !Number.isInteger(Number(count))) return "";
+    date.setUTCDate(date.getUTCDate() + Number(count));
+    return toISO(date);
+  }
+
+  function staggerMailDates(dates = {}, today = todayInTimezone()) {
+    const current = toISO(today);
+    if (!current) return { ...dates };
+    const result = { ...dates };
+    const firstMail = toISO(result.m1);
+    const base = firstMail && firstMail > current ? firstMail : current;
+    const reminderOne = toISO(result.r1);
+    if (!reminderOne || reminderOne <= base) result.r1 = addCalendarDays(base, 7);
+    const reminderTwo = toISO(result.r2);
+    if (!reminderTwo || reminderTwo <= result.r1) result.r2 = addCalendarDays(result.r1, 7);
+    return result;
+  }
+
   function isPrDone(caseRow = {}) {
     if (toISO(caseRow.ud || caseRow.websiteUploadDate)) return true;
     const committee = toISO(caseRow.cd || caseRow.cdp || caseRow.committeeDate);
@@ -153,10 +181,10 @@
     return due === current ? "Due today" : "Overdue";
   }
 
-  function viewMembership(caseRow = {}) {
+  function viewMembership(caseRow = {}, today = todayInTimezone()) {
     const views = ["All", "Insights"];
     if (caseRow.ncd) views.push("NCD");
-    if (!caseRow.tr && !caseRow.w && isPrPending(caseRow)) views.push("Deadlines");
+    if (!caseRow.tr && !caseRow.w && isDeadlinePending(caseRow, today)) views.push("Deadlines");
     if (caseRow.inCommittee || caseRow.selectedForCommittee || caseRow.inBasket) views.push("Committee");
     return views;
   }
@@ -190,5 +218,5 @@
     return parseEmailAddresses(value).join("; ");
   }
 
-  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, isPrDone, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate, parseEmailAddresses, isValidEmailList, formatEmailHeader, formatOutlookRecipients });
+  return Object.freeze({ toISO, dateFromISO, parseImportDate, todayInTimezone, isWorkingDay, addWorkingDays, workingDaysBetween, addCalendarYears, isPrPending, isDeadlinePending, staggerMailDates, isPrDone, committeeDateForDisplay, deadlines, deadlineStatus, viewMembership, formatDate, parseEmailAddresses, isValidEmailList, formatEmailHeader, formatOutlookRecipients });
 });
