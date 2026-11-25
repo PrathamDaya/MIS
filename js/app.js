@@ -120,8 +120,14 @@ if(!DB.ready){host.innerHTML='<section class="panel auth-required"><h2>'+(DB.loa
  requestAnimationFrame(()=>{syncNavIndicator();if(animate)animateViewEntrance()})
 }
 /* ---------- downloads ---------- */
-async function out(name,data){try{const d=window.claude&&await claude.use("downloads");if(d){await d.save({filename:name,data});return}}catch(e){if(e&&e.code==="declined")return}
- const a=document.createElement("a"),u=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+function out(name,data){
+ const type=name.endsWith(".zip")?"application/zip":name.endsWith(".vbs")?"text/plain;charset=utf-8":"application/octet-stream";
+ const blob=data instanceof Blob?data:new Blob([data],{type}),URLApi=window.URL;
+ if(!URLApi||typeof URLApi.createObjectURL!=="function")throw new Error("This browser does not support file downloads");
+ const url=URLApi.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=name;a.rel="noopener";a.style.display="none";document.body.appendChild(a);
+ try{a.click()}finally{setTimeout(()=>a.remove(),1000);setTimeout(()=>URLApi.revokeObjectURL(url),60000)}
+}
 const clean=s=>s.replace(/[\\\/:*?"<>|]/g,"_").trim().replace(/[. ]+$/,"");
 const PARTS=/^word\/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$/,PH=/\{\s*\{\s*([^{}]*?)\s*\}\s*\}/g;
 function mailDates(c){
@@ -374,7 +380,7 @@ function mailDlg(id){const c=co(id),m=c.ml||{},D=m.d||{},X=m.s||{},dlg=$("#dlg")
  dlg.innerHTML=`<div class="dh">Mails · ${esc(c.n)}</div><div class="db"><label class="f">To (client)<input id="mt" inputmode="email" value="${esc(c.em||"")}" placeholder="name@example.com; team@example.com"></label><label class="f">CC<input id="mc" value="${esc(M.cc)}"></label><p class="f mut email-hint">Use semicolons between client addresses. The checklist draft will include each address.</p>
  ${Object.entries(KN).map(([k,v])=>`<div class="f" style="display:grid;grid-template-columns:1fr 150px auto;gap:8px;align-items:center"><b>${v}${X[k]?` <span class="tag ok">prepared ${fd(X[k])}</span>`:""}</b><input type="date" data-pd="${k}" value="${D[k]||""}"><button class="btn p" data-mk="${k}">Download .eml draft</button></div>`).join("")}
  <p class="f mut" style="margin:0;font-size:12px">Set dates for the checklist and each follow-up. Create the checklist first, then reminders one by one; reminders stay threaded with the checklist. Use Mail wording to load your complete .eml template and its workbook. EML downloads are editable drafts; use the Classic Outlook script to send messages from Outlook and queue dated messages for 10:00.</p></div><div class="df"><button class="btn" value="t">Mail wording…</button><button class="btn" value="x">Close</button></div>`;
- dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(!to)return toast("Add the client email before creating a draft");if(!window.MISLogic.isValidEmailList(to))return toast("Enter valid client email address(es), separated by semicolons");c.em=to;const d=draft(c,k,to,cc);await out(d.name,d.data);mark(c,k);save();render();return mailDlg(id)}
+ dlg.showModal();dlg.onclick=async e=>{const k=e.target.dataset.mk,v=e.target.tagName==="BUTTON"?e.target.value:"";if(k){e.preventDefault();const to=$("#mt").value.trim(),cc=$("#mc").value.trim();if(!to)return toast("Add the client email before creating a draft");if(!window.MISLogic.isValidEmailList(to))return toast("Enter valid client email address(es), separated by semicolons");c.em=to;try{const d=draft(c,k,to,cc);await out(d.name,d.data)}catch(error){console.error("MIS EML download failed",error);return toast("Could not download the .eml file. Allow downloads for this site and try again")}mark(c,k);save();render();return mailDlg(id)}
   if(!v)return;e.preventDefault();if(v==="x")return dlg.close();if(v==="t")return mailSet(id)}}
 function parseEml(raw){
  const split=s=>{const i=s.search(/\r?\n\r?\n/);return i<0?[s,""]:[s.slice(0,i),s.slice(i).replace(/^\r?\n/,"")]},head=s=>{const h={};s.replace(/\r?\n[ \t]+/g," ").split(/\r?\n/).forEach(l=>{const i=l.indexOf(":");if(i>0)h[l.slice(0,i).toLowerCase()]=l.slice(i+1).trim()});return h},decode=s=>{const b=s.replace(/=\r?\n/g,"").replace(/=([\da-f]{2})/gi,(_,x)=>String.fromCharCode(parseInt(x,16)));return new TextDecoder("windows-1252").decode(Uint8Array.from(b,c=>c.charCodeAt(0)))};
@@ -582,14 +588,16 @@ function bulkMail(ids){
   const before=cloneState(),dt={};Object.keys(KN).forEach(k=>{const x=$("#bd_"+k).value;if(x)dt[k]=x});cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=Object.assign({},c.ml.d,dt)});
   if(v==="s"){save();dlg.close();render();return toastUndo("Mail dates set for all "+cs.length+" selected cases",before)}
   const k=$("#bk2").value,ks=k==="all"?["m1","r1","r2"]:[k];if(k==="all")cs.forEach(c=>{c.ml=c.ml||{};c.ml.d=M.staggerMailDates(c.ml.d||{},iso(TODAY))});const cc=$("#bc2").value.trim(),dr=cs.flatMap(c=>ks.map(x=>draft(c,x,c.em||"",cc)));
-  if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}
-  else if(v==="v")await out("MIS-Outlook-Send-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
+  try{
+   if(v==="z"){const z=new PizZip();dr.forEach(d=>z.file(d.name,d.data));await out("Mail drafts.zip",z.generate({type:"uint8array"}))}
+   else if(v==="v")await out("MIS-Outlook-Send-"+iso(TODAY).replace(/-/g,"")+"-"+Date.now()+".vbs",vbs(dr));
+  }catch(error){console.error("MIS mail-file download failed",error);S=before;dlg.close();render();return toast("Could not download the mail file. Allow downloads for this site and try again")}
   cs.forEach(c=>ks.forEach(x=>mark(c,x)));save();dlg.close();render();
   toastUndo(v==="z"?dr.length+" .eml files downloaded":"Created a Classic Outlook send script for "+dr.length+" emails. Run it and confirm once to send.",before)
  }
 }
 async function zipDue(){const invalid=list().filter(c=>dueM(c).length&&c.em&&!window.MISLogic.isValidEmailList(c.em)).length;if(invalid)return toast("Fix invalid client email address(es) for due cases before creating drafts");const before=cloneState(),z=new PizZip();let n=0,nm=0;for(const c of list()){for(const k of dueM(c)){if(!c.em)nm++;const d=draft(c,k,c.em||"",ML().cc);z.file(d.name,d.data);mark(c,k);n++}}
- if(!n)return toast("No mails are due");await out("Due mail drafts.zip",z.generate({type:"uint8array"}));save();render();toastUndo(n+" drafts created"+(nm?(" ("+nm+" without a client email)"):""),before)}
+ if(!n)return toast("No mails are due");try{await out("Due mail drafts.zip",z.generate({type:"uint8array"}))}catch(error){console.error("MIS due-mail download failed",error);S=before;render();return toast("Could not download the .eml ZIP. Allow downloads for this site and try again")}save();render();toastUndo(n+" drafts created"+(nm?(" ("+nm+" without a client email)"):""),before)}
 /* ---------- Supabase sync ---------- */
 let XH=null,XB=false,xt,XQueued=false,failedSnapshot=null;
 const xst=(t,c)=>{const e=$("#sync-status"),b=$("#sync-retry"),state=c==="o"?"synced":c==="w"?"failed":c||"saving";if(e){e.textContent=t;e.dataset.state=state}if(b)b.hidden=!DB.cfg()||state!=="failed"&&state!=="offline"};
